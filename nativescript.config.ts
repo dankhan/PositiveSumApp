@@ -1,7 +1,7 @@
 import { NativeScriptConfig } from '@nativescript/core';
 
 export default {
-  id: 'org.nativescript.PositiveSumApp',
+  id: 'ventures.zeropoint.app.positivesum',
   appPath: 'app',
   appResourcesPath: 'App_Resources',
   android: {
