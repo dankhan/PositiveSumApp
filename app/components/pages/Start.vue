@@ -13,8 +13,8 @@
 
         <!-- Buttons and links -->   
         <StackLayout row="2" verticalAlignment="top" horizontalAlignment="center">
-            <!-- login link -->
-            <Label class="link" marginTop="25" text="Sign Up" @tap="$goto('signup')" />
+            <!-- Sign up link -->
+            <Label class="link" marginTop="25" text="Sign Up" @tap="onTapSignUp" />
 
             <!-- login link -->
             <Label class="link" marginTop="25" text="Login" @tap="onTapLogin" />
@@ -25,25 +25,24 @@
 
 <script>
 import { Page } from '@nativescript/core/ui/page';
-//const utilsModule = require("tns-core-modules/utils/utils");
 
 // In-page components
-// import AppButton from '~/components/widgets/AppButton';
-import Login from "~/components/pages/Login/Login";
 import LoginFrame from "~/components/frames/LoginFrame";
+import SignUpFrame from "~/components/frames/SignUpFrame";
 
 export default {
-    components: {
-        //AppButton,
+    /*components: {
         LoginFrame,
-    },
+        SignUpFrame,
+    },*/
 
     data() {
         return {
             // LoginFrame - save any replaced callbacks so we can reset state when leaving page
-            oldPopupActivateCb: null,
-            oldPopupDeactivateCb: null,
+            // oldPopupActivateCb: null,
+            // oldPopupDeactivateCb: null,
             loginFrameName: 'Start_LoginFrame',
+            signupFrameName: 'Start_SignUpFrame',
         }
     },
 
@@ -104,6 +103,10 @@ export default {
 
         onTapLogin() {
             this.$showModal(LoginFrame, { fullscreen: true, props: { isPopover: true, frame: this.loginFrameName } });
+        },
+
+        onTapSignUp() {
+            this.$showModal(SignUpFrame, { fullscreen: true, props: { isPopover: true, frame: this.signupFrameName } });
         },
     },
 }

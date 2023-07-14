@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 
 // Import localStorage modules
 import LoginFrame from '@/store/LoginFrame';
+import SignUpFrame from '@/store/SignUpFrame';
 
 // Use the VueX storage module
 Vue.use(Vuex);
@@ -11,6 +12,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   modules: {
     LoginFrame,
+    SignUpFrame,
   },
 
   /*actions: {
