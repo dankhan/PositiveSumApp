@@ -1,0 +1,34 @@
+// Custom font variables
+/* #ns fonts
+│ Metropolis-Boldotf            │ font-family: "Metropolis", "Metropolis-Bold"; font-weight: 700;            │
+│ Metropolis-BoldItalic.otf     │ font-family: "Metropolis", "Metropolis-BoldItalic"; font-weight: 700;      │
+│ Metropolis-Regular.otf        │ font-family: "Metropolis", "Metropolis-Regular"; font-weight: 400;         │
+│ Metropolis-RegularItalic.otf  │ font-family: "Metropolis", "Metropolis-RegularItalic"; font-weight: 400;   |
+| Metropolis-SemiBold.otf       │ font-family: "Metropolis", "Metropolis-SemiBold"; font-weight: 600;        │
+│ Metropolis-SemiBoldItalic.otf │ font-family: "Metropolis", "Metropolis-SemiBoldItalic"; font-weight: 700;  │
+*/
+
+/*
+ * App fonts
+ */
+$font-family: "Metropolis", "Metropolis-Regular" !default;
+$font-family-bold: "Metropolis", "Metropolis-Bold";
+$font-family-italic: "Metropolis", "Metropolis-RegularItalic";
+$font-family-semibold: "Metropolis", "Metropolis-SemiBold";
+ 
+$font-weight: 400 !default;
+$font-weight-bold: 700;
+$font-weight-semibold: 600;
+
+$font-size: 13 !default;
+$font-size-small: 11;
+
+/*
+ * App colors
+ */
+$color-primary: #595E67;
+$color-primary-muted: #A5ADBB;
+$color-heading: #2f3236;
+$color-primary-inverted: #FFFFFF;
+
+$color-form-error: #e85d54;
