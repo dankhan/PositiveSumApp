@@ -4,14 +4,14 @@
         
         <!-- Top Nav-->
         <GridLayout row="0" columns="*,*,*" iosOverflowSafeArea="true" class="page-container">
-            <Label col="0" class="" horizontalAlignment="center" :textWrap="true" text="Close" @tap="onClose" />
-            <Label col="1" class="" horizontalAlignment="center" :textWrap="true" text="Sign Up" />
-            <Label col="2" class="" horizontalAlignment="center" :textWrap="true" text="Help" @tap="onHelp" />
+            <Label col="0" class="" horizontalAlignment="center" :textWrap="true" text="Close" @tap="onClose"></Label>
+            <Label col="1" class="" horizontalAlignment="center" :textWrap="true" text="Sign Up"></Label>
+            <Label col="2" class="" horizontalAlignment="center" :textWrap="true" text="Help" @tap="onHelp"></Label>
         </GridLayout>
 
         <StackLayout row="1" verticalAlignment="top" horizontalAlignment="center">
-            <Label class="" row="1" horizontalAlignment="center" :textWrap="true" text="Sign Up Page TODO:" />
-            <Label class="" :textWrap="true" marginTop="50" text="[Next]" @tap="onSubmit" />
+            <Label class="" row="1" horizontalAlignment="center" :textWrap="true" text="Sign Up - Enter Email TODO:"></Label>
+            <Label class="" :textWrap="true" marginTop="50" text="[Next]" @tap="onSubmit"></Label>
         </StackLayout>        
     </GridLayout>
   </Page>
@@ -51,7 +51,7 @@ export default {
         },
         
         onSubmit() {
-            this.$goto('signUpEmail', this.navOptions);
+            this.$goto('signUpCheckEmail', this.navOptions);
         },
 
         onClose() {

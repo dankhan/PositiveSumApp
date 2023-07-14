@@ -10,6 +10,11 @@ import ChangePassword from '~/components/pages/Login/ChangePassword';
 
 // Sign Up pages
 import SignUp from '~/components/pages/SignUp/SignUp';
+import SignUpEmail from '~/components/pages/SignUp/SignUpEmail';
+import SignUpCheckEmail from '~/components/pages/SignUp/SignUpCheckEmail';
+import SignUpPassword from '~/components/pages/SignUp/SignUpPassword';
+import SignUpPhone from '~/components/pages/SignUp/SignUpPhone';
+import SignUpCheckPhone from '~/components/pages/SignUp/SignUpCheckPhone';
 
 // Help Pages
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
@@ -28,6 +33,11 @@ const router = {
 
   // Sign Up pages
   signUp: SignUp,
+  signUpEmail: SignUpEmail,
+  signUpCheckEmail: SignUpCheckEmail,
+  signUpPassword: SignUpPassword,
+  signUpPhone: SignUpPhone,
+  signUpCheckPhone: SignUpCheckPhone,
 
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,

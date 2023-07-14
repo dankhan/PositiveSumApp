@@ -4,13 +4,13 @@
         
         <!-- Top Nav-->
         <GridLayout row="0" columns="*,*,*" iosOverflowSafeArea="true" class="page-container">
-            <Label col="0" class="" horizontalAlignment="center" :textWrap="true" text="Home" />
-            <Label col="1" class="" horizontalAlignment="center" :textWrap="true" text="+Σ" />
-            <Label col="2" class="" horizontalAlignment="center" :textWrap="true" text="Profile" />
+            <Label col="0" class="" horizontalAlignment="center" :textWrap="true" text="Home"></Label>
+            <Label col="1" class="" horizontalAlignment="center" :textWrap="true" text="+Σ"></Label>
+            <Label col="2" class="" horizontalAlignment="center" :textWrap="true" text="Profile"></Label>
         </GridLayout>
 
         <StackLayout row="1" verticalAlignment="top" horizontalAlignment="center">
-            <Label class="" horizontalAlignment="center" :textWrap="true" text="Home page TODO:" />
+            <Label class="" horizontalAlignment="center" :textWrap="true" text="Home page TODO:"></Label>
         </StackLayout>        
     </GridLayout>
   </Page>
@@ -18,6 +18,11 @@
 
 <script>
 export default {
+    props: {
+        fromLogin: { type: Boolean, default: false },
+        fromSignUp: { type: Boolean, default: false },
+    },
+    
     data() {
         return {
         }
