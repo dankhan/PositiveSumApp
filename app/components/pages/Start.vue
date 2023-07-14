@@ -17,29 +17,95 @@
             <Label class="link" marginTop="25" text="Sign Up" @tap="$goto('signup')" />
 
             <!-- login link -->
-            <Label class="link" marginTop="25" text="Login" @tap="$goto('login')" />
+            <Label class="link" marginTop="25" text="Login" @tap="onTapLogin" />
         </StackLayout>
     </GridLayout>
   </Page>
 </template>
 
 <script>
+import { Page } from '@nativescript/core/ui/page';
 //const utilsModule = require("tns-core-modules/utils/utils");
 
 // In-page components
 // import AppButton from '~/components/widgets/AppButton';
+import Login from "~/components/pages/Login/Login";
+import LoginFrame from "~/components/frames/LoginFrame";
 
 export default {
-    /*components: {
-        AppButton,
+    components: {
+        //AppButton,
+        LoginFrame,
+    },
+
+    data() {
+        return {
+            // LoginFrame - save any replaced callbacks so we can reset state when leaving page
+            oldPopupActivateCb: null,
+            oldPopupDeactivateCb: null,
+            loginFrameName: 'Start_LoginFrame',
+        }
+    },
+
+    /*computed: {
+        loginFrameActivateCallback: {
+            get() { return this.$store.getters['LoginFrame/activatePopoverCallback']; },
+            set(value) { this.$store.commit('LoginFrame/SET_ACTIVATE_POPOVER_CB', value); },  
+        },
+
+        loginFrameDeactivatedCallback: {
+            get() { return this.$store.getters['LoginFrame/deactivatePopoverCallback']; },
+            set(value) { this.$store.commit('LoginFrame/SET_DEACTIVATE_POPOVER_CB', value); },
+        },
     },*/
 
+    mounted() {
+        // Attach a page unload handler so we can reinstate the popup window callbacks
+        //this.nativeView.page.on(Page.navigatingFromEvent, this.onPageUnload);
+    },
+
+    beforeDestroy() {
+        // Remove the page unload handler
+       // this.nativeView.page.off(Page.navigatingFromEvent, this.onPageUnload);
+    },
+    
     methods: {
         onPageLoaded(event) {
             // Set the Status bar style (light or dark based on the *page* content)
             event.object.page.statusBarStyle = 'dark';
         },
-    }
+
+        // The LoginFrame is activated
+        /*onChangePopupActivateCb(oldCb) {
+            // Save the old callback so we can reattach on navigate away
+            if (oldCb) {
+                this.oldPopupActivateCb = oldCb;
+            } 
+        },
+
+        // The LoginFrame is deactivated
+        onChangePopupDeactivateCb(oldCb) {
+            // Save the old callback so we can reattach on navigate away
+            if (oldCb) {
+                this.oldPopupDeactivateCb = oldCb;
+            }
+        },
+
+        onPageUnload() {        
+            // Reset the original popup window callbacks
+            if (this.oldPopupActivateCb) {
+                this.loginFrameActivateCallback = this.oldPopupActivateCb;
+            }
+
+            if (this.oldPopupDeactivateCb) {
+                this.loginFrameDeactivatedCallback = this.oldPopupDeactivateCb;
+            }
+        },*/
+
+        onTapLogin() {
+            this.$showModal(LoginFrame, { fullscreen: true, props: { isPopover: true, frame: this.loginFrameName } });
+        },
+    },
 }
 </script>
 

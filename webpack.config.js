@@ -44,7 +44,7 @@ module.exports = (env) => {
 				"util": require.resolve('util/'),
 				"vm": require.resolve('vm-browserify'),
 				"zlib": require.resolve('browserify-zlib')
-			}
+			},
 		}
 	});
 
