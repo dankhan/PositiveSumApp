@@ -1,13 +1,14 @@
 <template>
-  <Start />
+  <Home />
 </template>
 
 <script>
 import Start from './pages/Start';
+import Home from './pages/Home';
 
 export default {
   components: {
-    Start,
+    Start, Home
   },
 }
 </script>

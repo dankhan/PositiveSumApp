@@ -1,71 +1,39 @@
 <template>
-  <Page actionBarHidden="true" @loaded="onPageLoaded">
-    <GridLayout rows="*,2*,*" iosOverflowSafeArea="true">
+  <Page actionBarHidden="true" @loaded="onPageLoaded" class="page-background">
+    <DockLayout>
+        <GridLayout rows="*,auto,auto" iosOverflowSafeArea="true" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10" dock="bottom">
 
-        <!-- heading and blurb -->   
-        <StackLayout row="1" verticalAlignment="top" horizontalAlignment="center">
-            <!-- heading -->
-            <Label :textWrap="false" class="heading" text="Positive Sum +Σ" />
+            <!-- heading and blurb -->   
+            <StackLayout row="1" dock="bottom">
+                <!-- heading -->
+                <Label :textWrap="false" class="heading" text="Positive Sum +Σ" />
 
-            <!-- blurb -->
-            <Label marginTop="40" :textWrap="true" class="heading-blurb" text="+Σ is a peer-support network of startups, innovators, and community-builders, who are committed to help each other grow by sharing their knowledge, networks, & know-how to help each other succeed." />
-        </StackLayout>
+                <!-- blurb -->
+                <Label marginTop="40" :textWrap="true" class="title-blurb" text="+Σ is a peer-support network of startups, innovators, and community-builders, who are committed to help each other grow by sharing their knowledge, networks, & know-how to help each other succeed." />
+            </StackLayout>
 
-        <!-- Buttons and links -->   
-        <StackLayout row="2" verticalAlignment="top" horizontalAlignment="center">
-            <!-- Sign up link -->
-            <Label class="link" marginTop="25" text="Sign Up" @tap="onTapSignUp" />
+            <!-- Buttons and links -->   
+            <StackLayout marginTop="40" row="2" verticalAlignment="top" horizontalAlignment="center" dock="bottom">
+                <!-- Sign up button -->
+                <Button class="button-primary" text="Sign Up" @tap="onTapSignUp"></Button>
 
-            <!-- login link -->
-            <Label class="link" marginTop="25" text="Login" @tap="onTapLogin" />
-        </StackLayout>
-    </GridLayout>
+                <!-- Login button -->
+                <Button marginTop="10" class="button-inverted" text="Login" @tap="onTapLogin"></Button>
+            </StackLayout>
+        </GridLayout>
+    </DockLayout>
   </Page>
 </template>
 
 <script>
 import { Page } from '@nativescript/core/ui/page';
 
-// In-page components
-import LoginFrame from "~/components/frames/LoginFrame";
-import SignUpFrame from "~/components/frames/SignUpFrame";
-
 export default {
-    /*components: {
-        LoginFrame,
-        SignUpFrame,
-    },*/
-
     data() {
         return {
-            // LoginFrame - save any replaced callbacks so we can reset state when leaving page
-            // oldPopupActivateCb: null,
-            // oldPopupDeactivateCb: null,
             loginFrameName: 'Start_LoginFrame',
             signupFrameName: 'Start_SignUpFrame',
         }
-    },
-
-    /*computed: {
-        loginFrameActivateCallback: {
-            get() { return this.$store.getters['LoginFrame/activatePopoverCallback']; },
-            set(value) { this.$store.commit('LoginFrame/SET_ACTIVATE_POPOVER_CB', value); },  
-        },
-
-        loginFrameDeactivatedCallback: {
-            get() { return this.$store.getters['LoginFrame/deactivatePopoverCallback']; },
-            set(value) { this.$store.commit('LoginFrame/SET_DEACTIVATE_POPOVER_CB', value); },
-        },
-    },*/
-
-    mounted() {
-        // Attach a page unload handler so we can reinstate the popup window callbacks
-        //this.nativeView.page.on(Page.navigatingFromEvent, this.onPageUnload);
-    },
-
-    beforeDestroy() {
-        // Remove the page unload handler
-       // this.nativeView.page.off(Page.navigatingFromEvent, this.onPageUnload);
     },
     
     methods: {
@@ -73,33 +41,6 @@ export default {
             // Set the Status bar style (light or dark based on the *page* content)
             event.object.page.statusBarStyle = 'dark';
         },
-
-        // The LoginFrame is activated
-        /*onChangePopupActivateCb(oldCb) {
-            // Save the old callback so we can reattach on navigate away
-            if (oldCb) {
-                this.oldPopupActivateCb = oldCb;
-            } 
-        },
-
-        // The LoginFrame is deactivated
-        onChangePopupDeactivateCb(oldCb) {
-            // Save the old callback so we can reattach on navigate away
-            if (oldCb) {
-                this.oldPopupDeactivateCb = oldCb;
-            }
-        },
-
-        onPageUnload() {        
-            // Reset the original popup window callbacks
-            if (this.oldPopupActivateCb) {
-                this.loginFrameActivateCallback = this.oldPopupActivateCb;
-            }
-
-            if (this.oldPopupDeactivateCb) {
-                this.loginFrameDeactivatedCallback = this.oldPopupDeactivateCb;
-            }
-        },*/
 
         onTapLogin() {
             this.$showModal(LoginFrame, { fullscreen: true, props: { isPopover: true, frame: this.loginFrameName } });
@@ -113,36 +54,23 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '~/assets/scss/theme-variables.scss';
-/*Page {
-  background-image: url('~/assets/images/main-background.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-}*/
+@import '~/assets/scss/app.scss';
 
-/*.heading {
-  text-align: center;
-  color: $color-heading;
-  font-size: $font-size;
-  font-family: $font-family-semibold;
-  font-weight: $font-weight-semibold;
-  margin-left: $main-container-margin + 25;
-  margin-right: $main-container-margin + 25;
-  line-height: 5;
-}*/
-
-/*.heading-blurb {
+.heading {
     text-align: center;
-    color: $color-heading-blurb;
-}*/
+}
 
+.title-blurb {
+    color: $color-primary-muted;
+    text-align: center;
+    line-height: $line-height-title-blurb;
+}
 
-/*.link {
-  text-align: center;
-  color: $color-hyperlink;
-  font-size: $font-size;
-  font-family: $font-family;
-  font-weight: $font-weight;
-}*/
+.page-background {
+    background-color: transparent;
+    background-image: url('~/assets/images/background.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
 </style>

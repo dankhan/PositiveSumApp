@@ -20,15 +20,65 @@ $font-weight: 400 !default;
 $font-weight-bold: 700;
 $font-weight-semibold: 600;
 
-$font-size: 13 !default;
+/* Font sizes */
+$font-size: 16 !default;
+
+$font-size-paragraph: 16;
+$font-size-paragraph-letter-spacing: 0.05;
+
+$font-size-heading: 20 !default;
+$font-size-heading-letter-spacing: 0.05;
+
+$font-size-page-title: 18;
+$font-size-page-title-letter-spacing: 0.5;
+$font-size-page-title-text-transform: uppercase;
+
+$font-size-button: 16;
+$font-size-button-text-transform: uppercase;
+
 $font-size-small: 11;
+
+
+/* line-heights */
+$line-height: 6 !default;
+$line-height-title-blurb: 10;
 
 /*
  * App colors
  */
-$color-primary: #595E67;
-$color-primary-muted: #A5ADBB;
-$color-heading: #2f3236;
-$color-primary-inverted: #FFFFFF;
+$color-background: #2f3236;
+
+$color-primary: #ffffff;
+$color-primary-muted: #6E5D6E;
+
+$color-button-primary: #2f3236;
+$color-button-primary-active: #000000;
+$color-button-primary-background: #85BCCB;
+$color-button-primary-background-active: #5F7E87;
+$color-button-primary-border: #85BCCB;
+$color-button-primary-border-active: #5F7E87;
+
+$color-button-inverted: #ffffff;
+$color-button-inverted-active: #ffffff;
+$color-button-inverted-background: #2f3236;
+$color-button-inverted-background-active: #767676;
+$color-button-inverted-border: #ffffff;
+$color-button-inverted-border-active: #767676;
+
+// Grid boxes
+$color-gridbox-background: #ffffff;
+$color-gridbox-text: #2F3236;
+$color-gridbox-notify-background: #E8E0E0;
 
 $color-form-error: #e85d54;
+
+
+/*
+ * Buttons
+ */
+$button-elevation: 4;
+$button-elevation-active: 8;
+$button-radius: 5;
+$button-border-width: 1;
+
+$button-width: 40%

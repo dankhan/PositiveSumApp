@@ -1,0 +1,76 @@
+// Default theme variables
+@import './theme-variables.scss';
+
+/*
+ * Page related
+ */
+Page {
+    background-color: $color-background;
+    color: $color-primary;
+    
+    font-family: $font-family;
+    font-weight: $font-weight;
+    font-size: $font-size;
+
+    line-height: $line-height;
+}
+
+.heading {
+    font-size: $font-size-heading;
+    font-weight: $font-weight-bold;
+    letter-spacing: $font-size-heading-letter-spacing;
+}
+
+.paragraph {
+    font-size: $font-size-paragraph;
+    font-weight: $font-weight;
+    letter-spacing: $font-size-paragraph-letter-spacing;
+    line-height: $line-height;
+}
+
+.page-title {
+    font-size: $font-size-page-title;
+    font-weight: $font-weight-bold;
+    letter-spacing: $font-size-page-title-letter-spacing;
+    text-transform: $font-size-page-title-text-transform;
+}
+
+.button-primary {
+    android-elevation: $button-elevation;
+    background-color: $color-button-primary-background;
+    border-color: $color-button-primary-border;
+    border-radius: $button-radius;
+    border-width: $button-border-width;
+    color: $color-button-primary;
+    font-size: $font-size-button;
+    font-weight: $font-weight-bold;
+    text-transform: $font-size-button-text-transform;
+    width: $button-width;
+}
+
+.button-primary:active {
+    android-elevation: $button-elevation-active;
+    background-color: $color-button-primary-background-active;
+    border-color: $color-button-primary-border-active;
+    color: $color-button-primary-active;
+}
+
+.button-inverted {
+    android-elevation: $button-elevation;
+    background-color: $color-button-inverted-background;
+    border-color: $color-button-inverted-border;
+    border-radius: $button-radius;
+    border-width: $button-border-width;
+    color: $color-button-inverted;
+    font-size: $font-size-button;
+    font-weight: $font-weight-bold;
+    text-transform: $font-size-button-text-transform;
+    width: $button-width;
+}
+
+.button-inverted:active {
+    android-elevation: $button-elevation-active;
+    background-color: $color-button-inverted-border-active;
+    border-color: $color-button-inverted-background-active;
+    color: $color-button-inverted-active;
+}
