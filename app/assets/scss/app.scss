@@ -87,3 +87,13 @@ Page {
     color: $color-listbutton;
     font-size: $font-size-listbutton;
 }
+
+.bold {
+    font-family: $font-family-bold;
+    font-weight: $font-weight-bold;
+}
+
+.italics {
+    font-family: $font-family-italic;
+    font-style: italic;
+}
