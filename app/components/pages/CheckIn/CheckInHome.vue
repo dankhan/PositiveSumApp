@@ -13,7 +13,16 @@
             
             <!-- Empty list, show help and add button -->
             <StackLayout v-if="!checkInList.length">
-                <Label class="paragraph" :textWrap="true" text="Empty list TODO:"></Label>
+
+                <!-- Add Button -->
+                <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson">
+                    <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_add" marginRight="15" />
+                </GridLayout>
+                
+                <!-- Help Button -->
+                <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp">
+                    <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_help" marginRight="15" />
+                </GridLayout>
             </StackLayout>
         </GridLayout>
     </DockLayout>
@@ -50,6 +59,10 @@ export default {
 
         onTapHelp() {
             this.$goto('checkInHelp', this.navOptions);
+        },
+
+        onTapAddPerson() {
+            console.log('Add person TODO:');
         }
     },
 }
@@ -57,4 +70,8 @@ export default {
 
 <style scoped lang="scss">
 @import '~/assets/scss/app.scss';
+.listButtonContainer {
+    margin-top: 10;
+}
+
 </style>

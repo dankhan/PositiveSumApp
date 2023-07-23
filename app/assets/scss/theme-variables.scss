@@ -36,6 +36,8 @@ $font-size-page-title-text-transform: uppercase;
 $font-size-button: 16;
 $font-size-button-text-transform: uppercase;
 
+$font-size-listbutton: 16;
+
 $font-size-small: 11;
 
 
@@ -69,6 +71,10 @@ $color-button-inverted-border-active: #767676;
 $color-gridbox-background: #ffffff;
 $color-gridbox-text: #2F3236;
 $color-gridbox-notify-background: #E8E0E0;
+
+// List buttons
+$color-listbutton-background: #FFFFFF;
+$color-listbutton: #2f3236;
 
 $color-form-error: #e85d54;
 

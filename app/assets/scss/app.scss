@@ -75,3 +75,15 @@ Page {
     border-color: $color-button-inverted-background-active;
     color: $color-button-inverted-active;
 }
+
+.listButtonContainer {
+    width: 100%;
+    background-color: $color-listbutton-background;
+    border-radius: 5;
+    padding: 10;
+}
+
+.listbutton {
+    color: $color-listbutton;
+    font-size: $font-size-listbutton;
+}
