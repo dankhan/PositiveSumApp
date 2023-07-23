@@ -22,6 +22,7 @@ import CheckInHome from '~/components/pages/CheckIn/CheckInHome';
 // Help Pages
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
 import SignUpHelp from '~/components/pages/Help/SignUp/SignUpHelp';
+import CheckInHelp from '~/components/pages/Help/CheckIn/CheckInHelp';
 
 // Setup the router links
 const router = {
@@ -48,6 +49,7 @@ const router = {
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
+  checkInHelp: CheckInHelp,
 }
 
 export default router;
