@@ -42,12 +42,12 @@ export default {
             event.object.page.statusBarStyle = 'dark';
         },
 
-        onTapLogin() {
-            this.$showModal(LoginFrame, { fullscreen: true, props: { isPopover: true, frame: this.loginFrameName } });
+        async onTapLogin() {
+            const data = await this.$showModal(LoginFrame, { fullscreen: true, props: { isPopover: true, frame: this.loginFrameName } });
         },
 
-        onTapSignUp() {
-            this.$showModal(SignUpFrame, { fullscreen: true, props: { isPopover: true, frame: this.signupFrameName } });
+        async onTapSignUp() {
+            const data = await this.$showModal(SignUpFrame, { fullscreen: true, props: { isPopover: true, frame: this.signupFrameName } });
         },
     },
 }

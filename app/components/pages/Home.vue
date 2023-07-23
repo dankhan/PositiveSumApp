@@ -2,11 +2,8 @@
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
         <!-- Top Nav -->
-        <GridLayout rows="26" columns="26,*,auto" iosOverflowSafeArea="true" class="page-container" dock="top" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10">
-            <Label col="1" class="page-title" horizontalAlignment="center" text="+Σ"></Label>
-            <Image col="2" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" src="res://icons_profile" marginLeft="15" />
-        </GridLayout>
-
+        <TopNav dock="top" title="+Σ" :rightIsProfile="true" rightRoute="" />
+        
         <!-- Bottom container -->
         <GridLayout rows="auto, auto" columns="*" dock="bottom" verticalAlignment="bottom" marginLeft="20" marginRight="20">
 
@@ -61,10 +58,17 @@
 </template>
 
 <script>
+// In-page components
+import TopNav from '~/components/widgets/TopNav';
+
 export default {
     props: {
         fromLogin: { type: Boolean, default: false },
         fromSignUp: { type: Boolean, default: false },
+    },
+    
+    components: {
+        TopNav,
     },
     
     data() {

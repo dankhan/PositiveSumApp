@@ -2,11 +2,8 @@
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
         <!-- Top Nav -->
-        <GridLayout rows="26" columns="auto,*,26" iosOverflowSafeArea="true" class="page-container" dock="top" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10">
-            <Image col="0" width="26" height="26" stretch="aspectFit" src="res://icons_back" marginRight="15" @tap="onTapBack" />
-            <Label col="1" class="page-title" horizontalAlignment="center" text="Check-In"></Label>
-        </GridLayout>
-
+        <TopNav dock="top" title="Check-In?" :leftIsBackButton="true" rightRoute="checkInHelp" />
+        
         <!-- Bottom container -->
         <StackLayout dock="bottom" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
             <Label class="paragraph" :textWrap="true" text="Send a lightweight 'check-in' to let people important to you know that you're thinking about them, and then drop into other contact options if they need more support."></Label>
@@ -23,11 +20,18 @@
 </template>
 
 <script>
+// In-page components
+import TopNav from '~/components/widgets/TopNav';
+
 export default {
     props: {
       // Login page shown as a login frame
         isPopover: { type: Boolean, default: false },
         frame: { type: String, default: 'default' },
+    },
+
+    components: {
+        TopNav,
     },
     
     data() {
