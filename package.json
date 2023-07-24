@@ -7,8 +7,11 @@
   "private": true,
   "dependencies": {
     "@nativescript/core": "~8.5.0",
+    "@nativescript/iqkeyboardmanager": "^2.1.1",
     "@nativescript/theme": "~3.0.2",
+    "google-libphonenumber": "^3.2.32",
     "nativescript-gif": "^5.0.0",
+    "nativescript-telephony": "^1.0.4",
     "nativescript-vue": "~2.9.3",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "vuex": "^3.6.2"

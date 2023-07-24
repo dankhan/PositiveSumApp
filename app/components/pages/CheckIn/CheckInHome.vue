@@ -29,9 +29,6 @@
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
 
-// Modal pages
-import AddPerson from '~/components/pages/Person/AddPerson';
-
 export default {
     components: {
         TopNav,
@@ -67,8 +64,8 @@ export default {
             this.$goto('checkInHelp', this.navOptions);
         },
 
-        onTapAddPerson() {
-            console.log('Add person TODO:');
+        async onTapAddPerson() {
+            this.$goto('addPerson', this.navOptions);
         }
     },
 }
@@ -76,8 +73,4 @@ export default {
 
 <style scoped lang="scss">
 @import '~/assets/scss/app.scss';
-.listButtonContainer {
-    margin-top: 10;
-}
-
 </style>

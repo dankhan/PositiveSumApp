@@ -38,6 +38,8 @@ $font-size-button-text-transform: uppercase;
 
 $font-size-listbutton: 16;
 
+$font-size-form-input: 18;
+
 $font-size-small: 11;
 
 
@@ -76,8 +78,14 @@ $color-gridbox-notify-background: #E8E0E0;
 $color-listbutton-background: #FFFFFF;
 $color-listbutton: #2f3236;
 
+// Forms
+$color-form-input-background: #F7F1F1;
+$color-form-input: #2F3236;
 $color-form-error: #e85d54;
 
+// Sliders
+$color-slider: #ffffff;
+$color-slider-background: #85BCCB; 
 
 /*
  * Buttons
@@ -87,4 +95,4 @@ $button-elevation-active: 8;
 $button-radius: 5;
 $button-border-width: 1;
 
-$button-width: 40%
+$button-width: 40%;

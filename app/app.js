@@ -15,6 +15,10 @@ Vue.config.silent = (global.TNS_ENV === 'production');
 // Import and register the animated gif plugin
 Vue.registerElement('Gif', ()=> require('nativescript-gif').Gif);
 
+// Import the IQKeyboardManager plugin to allow NS to auto scroll textfields into view when keyboard is onscreen
+Vue.registerElement("PreviousNextView", () => require("@nativescript/iqkeyboardmanager").PreviousNextView);
+Vue.registerElement("TextViewWithHint", () => require("@nativescript/iqkeyboardmanager").TextViewWithHint);
+
 // Set up prototypes to use throughout the app.
 Vue.prototype.$router = router;
 Vue.prototype.$store = store;
