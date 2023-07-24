@@ -3,29 +3,32 @@
         <DockLayout>
         
             <!-- Top Nav -->
-            <TopNav dock="top" title="Select Country" :leftIsCloseButton="true" />
+            <TopNav dock="top" title="Country" :leftIsCloseButton="true" />
         
-            <StackLayout marginRight="20" marginTop="20" marginBottom="10" marginLeft="20">
-        
-                <!-- Search bar to filter results -->
-                <SearchBar ref="searchBar" hint="Search" @textChange="searchCountryCode" class="form-input" />
+            <ScrollView>
+                
+                <StackLayout marginRight="20" marginTop="20" marginBottom="10" marginLeft="20" class="maxheight">
+                    <!-- Search bar to filter results -->
+                    <!--<SearchBar ref="searchBar" hint="Search" @textChange="searchCountryCode" class="form-input" />-->
+                    <SearchField ref="searchBar" @textChange="searchCountryCode" @returnPress="searchCountryCode" />
 
-                <!-- Arrow Image -->
-                <Image v-if="countriesFound.length" width="26" height="26" src="res://icons_chevron_bottom" class="chevron" />
+                    <!-- Arrow Image -->
+                    <Image v-if="countriesFound.length" width="26" height="26" src="res://icons_chevron_bottom" class="chevron" />
 
-                <ListView for="item in countriesFound" rowHeight="60" height="100%" marginRight="10" marginBottom="10" marginLeft="10" separatorColor="transparent">
-                    <v-template>
-                        <!-- template wrapped in StackLayout for class list-item to take effect -->
-                        <StackLayout>
-                            <GridLayout columns="40,*" rows="auto,auto" class="list-item" @tap="selectCountry($event, item)">
-                                <Image v-if="item.flag" :src="'data:image/png;base64,'+item.flag" class="flag" />
-                                <Label :text="item.name" row="0" col="1" class="country-name" />
-                                <Label :text="'+'+item.dialCode" row="1" col="1" class="country-dialcode" />
-                            </GridLayout>
-                        </StackLayout>
-                    </v-template>
-                </ListView>
-            </StackLayout>
+                    <ListView for="item in countriesFound" rowHeight="60" height="100%" marginRight="10" marginBottom="10" marginLeft="10" separatorColor="transparent">
+                        <v-template>
+                            <!-- template wrapped in StackLayout for class list-item to take effect -->
+                            <StackLayout>
+                                <GridLayout columns="40,*" rows="auto,auto" class="list-item" @tap="selectCountry($event, item)">
+                                    <Image v-if="item.flag" :src="'data:image/png;base64,'+item.flag" class="flag" />
+                                    <Label :text="item.name" row="0" col="1" class="country-name" />
+                                    <Label :text="'+'+item.dialCode" row="1" col="1" class="country-dialcode" />
+                                </GridLayout>
+                            </StackLayout>
+                        </v-template>
+                    </ListView>
+                </StackLayout>
+            </ScrollView>
         </DockLayout>
     </Page>
 </template>
@@ -37,15 +40,18 @@ import * as PhoneNumberProvider from '~/common/phonenumber';
 
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
+import SearchField from '~/components/widgets/SearchField';
 
 export default {
     components: {
         TopNav,
+        SearchField,
     },
     
     data() {
       return {
         countriesFound: [],
+        searchStr: '',
       }
     },
 
@@ -62,14 +68,14 @@ export default {
 
         searchCountryCode(event) {
             // trim out anything other than characters
-            let str = event.value.replace(/[\\+0-9]/g, "");
+            let str = event.value ? event.value.replace(/[\\+0-9]/g, "") : this.searchStr;
             let regex = new RegExp(str, 'i');
             this.countriesFound = PhoneNumberProvider.countries.filter((country) => regex.test(country.name));
+            this.searchStr = str;
         },
 
         selectCountry(_event, country) {
             // Close window and return the selected information
-            console.log({ name: country.name, iso2: country.iso2, dialCode: country.dialCode});
             this.$modal.close({ name: country.name, iso2: country.iso2, dialCode: country.dialCode});
         },
 
@@ -120,5 +126,10 @@ export default {
 .chevron {
     margin-top: 10;
     margin-bottom: 0;
+}
+
+.maxheight {
+    height: 100%;
+    min-height: 100%;
 }
 </style>

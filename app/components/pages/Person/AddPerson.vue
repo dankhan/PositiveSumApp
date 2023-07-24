@@ -1,56 +1,56 @@
 <template>
-  <Page actionBarHidden="true" @loaded="onPageLoaded">
-    <DockLayout>
-        <!-- Top Nav -->
-        <TopNav dock="top" title="Add Person" :leftIsBackButton="true" :rightIsHelpButton="true" rightRoute="addPersonHelp" />
+    <Page actionBarHidden="true" @loaded="onPageLoaded">
+        <DockLayout>
+            <!-- Top Nav -->
+            <TopNav dock="top" title="Add Person" :leftIsBackButton="true" :rightIsHelpButton="true" rightRoute="addPersonHelp" />
 
-        <!-- Bottom container -->
-        <ScrollView dock="bottom">
-            <PreviousNextView>
-                <GridLayout rows="auto, auto" columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
-                    <!-- Form -->
-                    <StackLayout>
-                        <!-- Name -->
+            <!-- Bottom container -->
+            <ScrollView dock="bottom">
+                <PreviousNextView>
+                    <GridLayout rows="auto, auto" columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
+                        <!-- Form -->
                         <StackLayout>
-                            <TextField v-model="formName" ref="formName" hint="Name..." class="form-input" :autocorrect="false" />
-                            <label v-if="nameError" class="error" marginBottom="5">Please enter a name</label>
-                        </StackLayout>
-
-                        <!-- Email -->
-                        <StackLayout>
-                            <TextField v-model="formEmail" hint="Email address..." class="form-input" keyboardType="email" :autocorrect="false" />
-                            <label v-if="emailError" class="error" marginBottom="5">Please enter a valid email address</label>
-                        </StackLayout>
-
-                        <!-- Country code and Phone -->
-                        <GridLayout :columns="countryCodeCols" marginTop="5">
-                            <StackLayout orientation="horizontal" @tap="onTapCountryCode" verticalAlignment="middle" class="form-input">
-                                <Image v-if="flagImage" :src="'data:image/png;base64,'+flagImage" class="flag" />
-                                <Label :text="formCountryDialCode" class="country-code" />
-                                <Image src="res://icons_form_expander" verticalAlignment="middle" height="24" :marginLeft="countryCodeMargin" marginRight="3" />
+                            <!-- Name -->
+                            <StackLayout>
+                                <TextField v-model="formName" ref="formName" hint="Name..." class="form-input" :autocorrect="false" />
+                                <label v-if="nameError" class="error" marginBottom="5">Please enter a name</label>
                             </StackLayout>
 
-                            <!-- Search field - use a background effect to make icon look like it's in the search field -->
-                            <GridLayout :row="0" :col="1" class="input-border" columns="*, auto" rows="44" marginLeft="10">
-                                <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." ref="phoneField" @textChange="formPhone=$event.value" @returnPress="formPhone=$event.value" keyboardType="phone"></TextField>
-                                <Image :src="phoneFieldIcon" col="1" class="form-icon" verticalAlignment="middle" height="20" />
+                            <!-- Email -->
+                            <StackLayout>
+                                <TextField v-model="formEmail" hint="Email address..." class="form-input" keyboardType="email" :autocorrect="false" />
+                                <label v-if="emailError" class="error" marginBottom="5">Please enter a valid email address</label>
+                            </StackLayout>
+
+                            <!-- Country code and Phone -->
+                            <GridLayout :columns="countryCodeCols" marginTop="5">
+                                <StackLayout orientation="horizontal" @tap="onTapCountryCode" verticalAlignment="middle" class="form-input">
+                                    <Image v-if="flagImage" :src="'data:image/png;base64,'+flagImage" class="flag" />
+                                    <Label :text="formCountryDialCode" class="country-code" />
+                                    <Image src="res://icons_form_expander" verticalAlignment="middle" height="24" :marginLeft="countryCodeMargin" marginRight="3" />
+                                </StackLayout>
+
+                                <!-- Search field - use a background effect to make icon look like it's in the search field -->
+                                <GridLayout :row="0" :col="1" class="input-border" columns="*, auto" rows="44" marginLeft="10">
+                                    <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." ref="phoneField" @textChange="formPhone=$event.value" @returnPress="formPhone=$event.value" keyboardType="phone"></TextField>
+                                    <Image :src="phoneFieldIcon" col="1" class="form-icon" verticalAlignment="middle" height="20" />
+                                </GridLayout>
                             </GridLayout>
-                        </GridLayout>
 
-                        <!-- Frequency -->
-                        <StackLayout>
-                            <Slider class="slider" v-model="formFrequency" minValue="1" :maxValue="frequencyOptions.length" @valueChange="onSliderValueChanged" backgroundColor="#85BCCB" color="#ffffff" />
-                            <label class="frequencyLabel" marginTop="-10" marginBottom="5" :text="frequencyLabel"></label>
+                            <!-- Frequency -->
+                            <StackLayout>
+                                <Slider class="slider" v-model="formFrequency" minValue="1" :maxValue="frequencyOptions.length" @valueChange="onSliderValueChanged" backgroundColor="#85BCCB" color="#ffffff" />
+                                <label class="frequencyLabel" marginTop="-10" marginBottom="5" :text="frequencyLabel"></label>
+                            </StackLayout>
+
+                            <!-- Add Person Button -->
+                            <Button marginTop="30" class="button-primary" text="Add Person" @tap="onTapAddPerson"></Button>
                         </StackLayout>
-
-                        <!-- Add Person Button -->
-                        <Button marginTop="30" class="button-primary" text="Add Person" @tap="onTapAddPerson"></Button>
-                    </StackLayout>
-                </GridLayout>
-            </PreviousNextView>
-        </ScrollView>
-    </DockLayout>
-  </Page>
+                    </GridLayout>
+                </PreviousNextView>
+            </ScrollView>
+        </DockLayout>
+    </Page>
 </template>
 
 <script>
@@ -216,6 +216,7 @@ export default {
 
 .frequencyLabel {
     text-align: center;
+    font-size: $font-size-small;
 }
 
 .flag {
