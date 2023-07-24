@@ -125,7 +125,7 @@
 
             // We clear the history when going to the home page
             let options = { clearHistory: true, ...this.backNavOptions };
-            this.$goto(this.homeRoute, this.backNavOptions);
+            this.$goto(this.homeRoute, options);
         },
 
         onTapHelp() {

@@ -13,13 +13,13 @@
                             <!-- Name -->
                             <StackLayout>
                                 <TextField v-model="formName" ref="formName" hint="Name..." class="form-input" :autocorrect="false" />
-                                <label v-if="nameError" class="error" marginBottom="5">Please enter a name</label>
-                            </StackLayout>
+                                <label v-if="nameError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">Please enter a name</label>
+                            </StackLayout>                            
 
                             <!-- Email -->
                             <StackLayout>
                                 <TextField v-model="formEmail" hint="Email address..." class="form-input" keyboardType="email" :autocorrect="false" />
-                                <label v-if="emailError" class="error" marginBottom="5">Please enter a valid email address</label>
+                                <label v-if="emailError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">Please enter a valid email address</label>
                             </StackLayout>
 
                             <!-- Country code and Phone -->
@@ -37,12 +37,17 @@
                                 </GridLayout>
                             </GridLayout>
 
+                            <label v-if="phoneNumberError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">Please enter a valid phone number</label>
+                            
                             <!-- Frequency -->
                             <StackLayout>
                                 <Slider class="slider" v-model="formFrequency" minValue="1" :maxValue="frequencyOptions.length" @valueChange="onSliderValueChanged" backgroundColor="#85BCCB" color="#ffffff" />
                                 <label class="frequencyLabel" marginTop="-10" marginBottom="5" :text="frequencyLabel"></label>
                             </StackLayout>
 
+                            <!-- Server submit error message -->
+                            <label v-if="isSubmitError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">There was a problem saving these details, please try again</label>
+                            
                             <!-- Add Person Button -->
                             <Button marginTop="30" class="button-primary" text="Add Person" @tap="onTapAddPerson"></Button>
                         </StackLayout>
@@ -95,6 +100,7 @@ export default {
     },
 
     computed: {
+        // Navigation options
         backNavOptions() {
             return { transition: { name: "slideRight", duration: 300, curve: "ease" } }
         },
@@ -103,6 +109,7 @@ export default {
             return { transition: { name: "slideLeft", duration: 300, curve: "ease" } }
         },
 
+        // Form field validation
         nameError() {
             return (this.formName.trim() === "") && this.isSubmit;
         },
@@ -112,8 +119,8 @@ export default {
             return (this.formEmail.trim() === "" || !re.test(this.formEmail)) && this.isSubmit;
         },
 
-        phoneError() {
-            return false && this.isSubmit;
+        phoneNumberError() {
+            return !this.isValidPhoneNumber && this.isSubmit;
         },
 
         frequencyLabel() {
@@ -180,10 +187,6 @@ export default {
             this.flagImage = (country && country.hasOwnProperty('flag') && country.flag!==null ) ? country.flag : null;
         },
         
-        onTapAddPerson() {
-            console.log('add person todo');
-        },
-
         onSliderValueChanged(event) {
             // Round slider value to nearest whole number
             const step = 1;
@@ -203,7 +206,45 @@ export default {
                         this.setFlagImage();
                     }
                 });
-        }
+        },
+
+        onTapAddPerson() {
+            // Clear any previous error message
+            if (this.errorTimer) {
+                clearTimeout(this.errorTimer);
+            }
+
+            // Set state to processing a submit
+            this.isSubmit = true;
+
+            // Validate form fields
+            if (!this.nameError && !this.emailError && !this.phoneNumberError) {
+                // Valid
+            
+                try {
+                    // TODO: Add this person for this user on the server
+
+                    // Reset submit state
+                    this.isSubmit = false;
+
+                    // Redirect to check-in list
+                    let options = { clearHistory: true, ...this.backNavOptions };
+                    this.$goto('checkInHome', options);
+                } catch (e) {
+                    // Show an error message
+                    this.isSubmitError = true;
+                    this.errorTimer = setTimeout(() => {
+                        this.isSubmitError = false;
+                        this.isSubmit = false;
+                    }, 3000);
+                }
+            } else {
+                this.errorTimer = setTimeout(() => {
+                this.isSubmit = false;
+                this.isSubmitError = false;
+            }, 3000);
+          }
+        },
     },
 }
 </script>
