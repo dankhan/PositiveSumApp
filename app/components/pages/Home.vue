@@ -89,8 +89,6 @@ export default {
                 str = 'Night time';
             } else if (time >= 2 && time < 12) {
                 str = 'Morning';
-            } else if (time === 12) {
-                str = 'Noon ';
             } else if (time >= 12 && time <= 15) {
                 str = 'Good Afternoon';
             } else if (time >= 16 && time < 19) {

@@ -1,31 +1,19 @@
 <template>
     <!-- Search field - uses a background effect to make icon look like it's in the search field -->
     <GridLayout class="input-border" columns="*, auto" v-bind="$attrs">
-        <TextField col="0" class="form-input" v-model="searchQuery" :hint="hint" @textChange="onTextChange" @returnPress="onReturnPress"></TextField>
-        <Image src="res://search" col="1" class="form-icon" verticalAlignment="middle" height="24" @tap="onReturnPress" />
+        <TextField ref="searchBar" col="0" class="form-input" v-model="searchQuery" :hint="hint" @textChange="onTextChange" @returnPress="onReturnPress"></TextField>
+        <Image src="res://search" col="1" class="form-icon" verticalAlignment="middle" height="24" @tap="onTapIcon" />
     </GridLayout>
-
-    <!-- Search field - use a background effect to make icon look like it's in the search field -->
-    <!--<GridLayout :row="0" :col="1" class="input-border" columns="*, auto" rows="44" marginLeft="10">
-        <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." ref="phoneField" @textChange="formPhone=$event.value" @returnPress="formPhone=$event.value" keyboardType="phone"></TextField>
-        <Image :src="phoneFieldIcon" col="1" class="form-icon" verticalAlignment="middle" height="20" />
-    </GridLayout>-->
-
 </template>
 
 <script>
+import { isAndroid } from "@nativescript/core/platform";
+
   export default {
     props: {
         search: { type: String, default: '' },
         hint: { type: String, default: 'Search...' },
-
-        width: { type: [String,Number], default: "100%" },
-        /*row: { type: [String,Number], default: "0" },
-        col: { type: [String,Number], default: "0" },
-        marginLeft: { type: [String,Number], default: "0" },
-        marginRight: { type: [String,Number], default: "0" },
-        verticalAlignment: { type: String, default: 'middle' },
-        horizontalAlignment: { type: String, default: 'stretch' },*/
+        preventFocus: { type: Boolean, default: false },
     },
     
     data() {
@@ -38,10 +26,19 @@
         search(text) {
             this.searchQuery = text;
         },
+
+        preventFocus(prevent) {
+            if (prevent) {
+                this.preventFieldFocus();
+            }
+        },
     },
 
     mounted() {
         this.searchQuery = this.search;
+        if (this.preventFocus) {
+            this.preventFieldFocus();
+        }
     },
     
     methods: {
@@ -54,35 +51,31 @@
             // let parent know we changed
             this.$emit('returnPress', event);
         },
+
+        onTapIcon(event) {
+            // let parent know we changed
+            this.$emit('tapIcon', event);
+        },
+
+        /*
+            SearchField automatically gains focus when loaded on Android and triggers soft keyboard
+            This method dismisses clears focus and dismisses soft keyboard
+        */
+        preventFieldFocus() {
+            if (isAndroid) {
+                if (this.$refs.searchBar.nativeElement.android) {
+                    setTimeout(() => { this.$refs.searchBar.nativeElement.android.clearFocus(); }, 0); // clears focus and dismisses soft keyboard
+                } else {
+                    setTimeout(() => { this.preventFocus(); }, 10); // sometimes nativeElement is not available yet
+                }
+            }
+        },
     }
   }
 </script>
 
 <style scoped lang="scss">
 @import '~/assets/scss/app.scss';
-
-/*.input-border {
-    background-color: #ffffff;
-    border-radius: 10;
-}*/
-
-/*.input {
-    height: 30;
-    padding: 5;
-    text-align: left;
-    border-bottom-width: 1;
-    border-bottom-color: transparent;
-    color: $color-heading;
-    font-family: $font-family;
-    font-weight: $font-weight;
-    font-size: $font-size;
-}*/
-
-/*.formIcon {
-    padding-left: 10;
-    padding-right: 5;
-    margin-right: 10;
-}*/
 
 .form-icon {
     margin-left: 10;

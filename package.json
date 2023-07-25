@@ -6,6 +6,8 @@
   "author": "Dan Khan <dan.khan@gmail.com>",
   "private": true,
   "dependencies": {
+    "@nativescript-community/perms": "^2.3.0",
+    "@nativescript/contacts": "^2.1.0",
     "@nativescript/core": "~8.5.0",
     "@nativescript/iqkeyboardmanager": "^2.1.1",
     "@nativescript/theme": "~3.0.2",

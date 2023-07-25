@@ -43,5 +43,25 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Whilst this app has the ability to request bluetooth permissions, this app does not use bluetooth, nor request such permissions</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Whilst this app has the ability to request calendar permissions, this app does not use the calendar, nor request such permissions</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Whilst this app has the ability to request camera permissions, this app does not use the camera, nor request such permissions</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Whilst this app has the ability to request location permissions, this app does not use your location, nor request such permissions</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Whilst this app has the ability to request photo library permissions, this app does not use the photo library, nor request such permissionsn</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Whilst this app has the ability to request photo library permissions, this app does not use the photo library, nor request such permissions</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Whilst this app has the ability to request speech recognition permissions, this app does not use speech recognition, nor request such permissions</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Whilst this app has the ability to request Apple Music permissions, this app does not use Apple Music, nor request such permissions</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Allow access to your contacts to add people to your Positive Sum network directly from your phone.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Whilst this app has the ability to request motion permissions, this app does not use motion tracking, nor request such permissions</string>
 </dict>
 </plist>

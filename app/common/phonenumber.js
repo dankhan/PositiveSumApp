@@ -22,4 +22,16 @@ function isValidMobile(_phonenumber, country) {
     return false;
 }
 
-export { isValidMobile, countries };
+function getInternationalPhoneNumber(phoneNumber, countryCode) {
+    const phoneUtil = phonenumbers.PhoneNumberUtil.getInstance();
+    const number = phoneUtil.parse(phoneNumber, countryCode.toUpperCase());
+
+    return {
+        countryDialCode: number.getCountryCode(),
+        countryCode: phoneUtil.getRegionCodeForNumber(number),
+        nationalNumber: number.getNationalNumber(),
+        e164Number: phoneUtil.format(number, phonenumbers.PhoneNumberFormat.E164),
+    }
+}
+
+export { isValidMobile, getInternationalPhoneNumber, countries };

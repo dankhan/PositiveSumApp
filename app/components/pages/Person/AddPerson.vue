@@ -12,13 +12,15 @@
                         <StackLayout>
                             <!-- Name -->
                             <StackLayout>
-                                <TextField v-model="formName" ref="formName" hint="Name..." class="form-input" :autocorrect="false" />
+                                <SearchField :search="formName" hint="Name..." @textChange="onSearchQueryChange" @returnPress="onSearchQueryChange" @tapIcon="onTapSearchIcon" :autocorrect="false" marginBottom="5" />
                                 <label v-if="nameError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">Please enter a name</label>
+                                <label v-if="permissionsError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center" :text="permissionErrorMsg" @tap="onTapPermissionsError"></label>
+                                <label v-if="contactError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center" text="Problem fetching contact from phone book, please enter details manually"></label>
                             </StackLayout>                            
 
                             <!-- Email -->
                             <StackLayout>
-                                <TextField v-model="formEmail" hint="Email address..." class="form-input" keyboardType="email" :autocorrect="false" />
+                                <TextField v-model="formEmail" hint="Email address..." class="form-input" keyboardType="email" autocapitalizationType="none" :autocorrect="false" />
                                 <label v-if="emailError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">Please enter a valid email address</label>
                             </StackLayout>
 
@@ -32,7 +34,7 @@
 
                                 <!-- Search field - use a background effect to make icon look like it's in the search field -->
                                 <GridLayout :row="0" :col="1" class="input-border" columns="*, auto" rows="44" marginLeft="10">
-                                    <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." ref="phoneField" @textChange="formPhone=$event.value" @returnPress="formPhone=$event.value" keyboardType="phone"></TextField>
+                                    <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." keyboardType="phone"></TextField>
                                     <Image :src="phoneFieldIcon" col="1" class="form-icon" verticalAlignment="middle" height="20" />
                                 </GridLayout>
                             </GridLayout>
@@ -61,17 +63,23 @@
 <script>
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
+import SearchField from '~/components/widgets/SearchField';
 
 // Modal pages
 import CountrySelect from '~/components/pages/Person/CountrySelect';
+import ContactSelect from '~/components/pages/Person/ContactSelect';
 
 // Use the telephony plugin to get country code details from the phone sim
 import * as PhoneNumberProvider from '~/common/phonenumber';
 const Sim = require('nativescript-telephony');
 
+// Use the nativescript-community/perms to check and request device permissions
+import { request as requestPermission, canOpenSettings, openSettings } from '@nativescript-community/perms';
+
 export default {
     components: {
         TopNav,
+        SearchField,
     },
     
     data() {
@@ -89,13 +97,23 @@ export default {
             formCountryCode: undefined,     // ISO 2 char country code (e.g. US)
             formCountryDialCode: undefined, // country dial code (e.g. 1)
             flagImage: undefined,       // base64 encoded flag image currently displayed in form
-            defaultCountryCode: 'nz',
-            defaultCountryDialCode: '+64',
+            defaultCountryCode: 'us',
+            defaultCountryDialCode: '+1',
 
             // Submit related
             isSubmit: false,
             isSubmitError: false,
             errorTimer: null,
+
+            // Permissions and contact chooser related
+            permissionsError: false,
+            permissionsTimer: null,
+            canOpenSettings: false,
+            contactError: false,
+            contactTimer: null,
+
+            // Contact chooser related
+            contactDetails: null,           // If we chose this user from the phone contacts, we save the full structured data including all email addresses and phone numbers
         }
     },
 
@@ -111,7 +129,7 @@ export default {
 
         // Form field validation
         nameError() {
-            return (this.formName.trim() === "") && this.isSubmit;
+            return ((this.formName ? this.formName.trim() : "") === "") && this.isSubmit;
         },
         
         emailError() {
@@ -148,13 +166,19 @@ export default {
             // Validate using the google lib
             return PhoneNumberProvider.isValidMobile(phoneNumber, this.countryCode);
         },
+
+        permissionErrorMsg() {
+            return this.canOpenSettings
+                ? "You need to enable permission to access your contacts - tap to open system settings"
+                : "You need to enable permission to access your contacts - change this option in your system settings";
+        }
     },
 
     mounted() {
         // Try to get default country code details based on phone number/sim card
         Sim.Telephony().then((info) => {
             if (info.hasOwnProperty('countryCode')) { 
-                this.formCountryCode = info['countryCode'] || this.defaultCountryCode; 
+                this.formCountryCode = info['countryCode'] || this.defaultCountryCode;
                 this.formCountryDialCode = '+' + PhoneNumberProvider.countries.find((c) => c['iso2']==this.formCountryCode)['dialCode'];
                 this.setFlagImage();
             }
@@ -167,6 +191,9 @@ export default {
             this.formCountryDialCode = this.defaultCountryDialCode;
             this.setFlagImage();
         });
+
+        // Check if we can open the settings dialog for a potential permissions error
+        this.canOpenSettings = canOpenSettings();
     },
 
     methods: {
@@ -197,7 +224,7 @@ export default {
         },
 
         onTapCountryCode() {
-            // SHow the modal and update country codes on results
+            // Show the modal and update country codes on results
             this.$showModal(CountrySelect, { fullscreen: true })
                 .then((result) => {
                     if (result && result.hasOwnProperty('iso2') && result.hasOwnProperty('dialCode')) {
@@ -244,6 +271,149 @@ export default {
                 this.isSubmitError = false;
             }, 3000);
           }
+        },
+
+        onSearchQueryChange(event) {
+            this.formName = event.value;
+        },
+
+        onTapSearchIcon() {
+            // Check if we have permissions first
+            requestPermission('contact').then(response => {
+                if (response[0] !== 'authorized' && response[0] !== 'limited') {
+                    this.showPermissionsError();
+                } else {
+                    this.permissionsError = false;
+
+                    // Show the modal and update the contact details on close
+                    this.$showModal(ContactSelect, { fullscreen: true, props: { /* search: this.formName */ } })
+                    .then((result) => {
+                        // Check if we have an unauthorised permissions message from modal
+                        if (result.authorized && result.authorized === false) {
+                            this.showPermissionsError();
+                        }
+
+                        // Check if lookup contacts failed
+                        if (result.lookupFailed && result.lookupFailed) {
+                            // Show failed lookup error
+                            this.showContactError();
+                        }
+                        
+                        // If valid results, update the local form values
+                        /*
+
+                        returned value (on iOS) is formatted like this:
+                        {
+                            "id": "410FE041-5C4E-48DA-B4DE-04C15EA3DBAC",
+                            "name": "John Appleseed",
+                            "firstName": "John",
+                            "lastName": "Appleseed",
+                            "sortName": "Appleseed John",
+                            "emailAddresses": [
+                                {
+                                    "id": "172726CF-4C0A-44C3-B9D8-0C86F7E654AD",
+                                    "label": "Work",
+                                    "value": "John-Appleseed@mac.com"
+                                }
+                            ],
+                            "emailAddress": "John-Appleseed@mac.com",
+                            "phoneNumbers": [
+                                {
+                                    "id": "E297F1F7-CAFC-4A9D-ABF8-F79DB4496C87",
+                                    "label": "Mobile",
+                                    "value": "888-555-5512"
+                                },
+                                {
+                                    "id": "5E423897-5B64-4129-AF55-10B1B3153697",
+                                    "label": "Home",
+                                    "value": "888-555-1212"
+                                }
+                            ],
+                            "phoneNumber": "888-555-5512",
+                            "internationalPhoneNumber": {
+                                "countryCode": "NZ",
+                                "countryDialCode": 64,
+                                "nationalNumber": 8885555512,
+                                "e164Number": "+648885555512"
+                            }
+                        }
+                        */
+
+                        if (result && result.hasOwnProperty('id')) {
+                            // We save the full record
+                            this.contactDetails = result;
+                            
+                            // Check if we have a valid name
+                            if (result.hasOwnProperty('name') && result.name.length) {
+                                this.formName = result.name;
+                            }
+
+                            // Check if we have a valid email
+                            if (result.hasOwnProperty('emailAddress') && result.emailAddress.length) {
+                                this.formEmail = result.emailAddress;
+                            }
+                            
+                            // Check if we have valid phone number, country code, and dial code
+                            if (result.hasOwnProperty('internationalPhoneNumber')) {
+                                // Country code
+                                if (result.internationalPhoneNumber.hasOwnProperty('countryCode') && result.internationalPhoneNumber.countryCode.length) {
+                                    this.formCountryCode = result.internationalPhoneNumber.countryCode.toLowerCase();
+                                }
+
+                                // Dial code
+                                if (result.internationalPhoneNumber.hasOwnProperty('countryDialCode') && result.internationalPhoneNumber.countryDialCode.length) {
+                                    this.formCountryDialCode = result.internationalPhoneNumber.countryDialCode;
+                                }
+                                
+                                // Phone number (may be a number not a string)
+                                if (result.internationalPhoneNumber.hasOwnProperty('nationalNumber') && ("" + result.internationalPhoneNumber.nationalNumber.length)) {
+                                    this.formPhone = "" + result.internationalPhoneNumber.nationalNumber;           // convert into string
+                                    console.log('this.formPhone = ' + result.internationalPhoneNumber.nationalNumber);
+                                }
+                            }
+                        }                        
+                    });
+                }
+            }).catch((err) => {
+                console.error("Failed to requestPermissions", err);
+                this.showPermissionsError();
+            });
+        },
+
+        showPermissionsError() {
+            // Clear any previous error message
+            if (this.permissionsTimer) {
+                clearTimeout(this.permissionsTimer);
+            }
+            
+            // Set permissions error
+            this.permissionsError = true;
+
+            // Set a timer to clear the message in 5s
+            this.permissionsTimer = setTimeout(() => {
+                this.permissionsError = false;
+            }, 5000);
+        },
+
+        showContactError() {
+            // Clear any previous error message
+            if (this.contactTimer) {
+                clearTimeout(this.contactTimer);
+            }
+            
+            // Set permissions error
+            this.contactError = true;
+
+            // Set a timer to clear the message in 5s
+            this.contactTimer = setTimeout(() => {
+                this.contactError = false;
+            }, 5000);
+        },
+
+        onTapPermissionsError() {
+            if (this.canOpenSettings) {
+                return openSettings();
+            }
         },
     },
 }

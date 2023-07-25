@@ -9,8 +9,7 @@
                 
                 <StackLayout marginRight="20" marginTop="20" marginBottom="10" marginLeft="20" class="maxheight">
                     <!-- Search bar to filter results -->
-                    <!--<SearchBar ref="searchBar" hint="Search" @textChange="searchCountryCode" class="form-input" />-->
-                    <SearchField ref="searchBar" @textChange="searchCountryCode" @returnPress="searchCountryCode" />
+                    <SearchField ref="searchBar" @textChange="searchCountryCode" @returnPress="searchCountryCode" :preventFocus="true" />
 
                     <!-- Arrow Image -->
                     <Image v-if="countriesFound.length" width="26" height="26" src="res://icons_chevron_bottom" class="chevron" />
@@ -35,7 +34,6 @@
 
 <script>
 // Use the telephony plugin to get country code details from the phone sim
-import { isAndroid } from "@nativescript/core/platform";
 import * as PhoneNumberProvider from '~/common/phonenumber';
 
 // In-page components
@@ -56,7 +54,6 @@ export default {
     },
 
     mounted() {
-        this.preventFocus();
         this.countriesFound = PhoneNumberProvider.countries;
     },
 
@@ -78,20 +75,6 @@ export default {
             // Close window and return the selected information
             this.$modal.close({ name: country.name, iso2: country.iso2, dialCode: country.dialCode});
         },
-
-        /*
-            SearchBar automatically gains focus when loaded on Android and triggers soft keyboard
-            This method dismisses clears focus and dismisses soft keyboard
-        */
-        preventFocus() {
-            if (isAndroid) {
-                if (this.$refs.searchBar.nativeElement.android) {
-                    setTimeout(() => { this.$refs.searchBar.nativeElement.android.clearFocus(); }, 0); // clears focus and dismisses soft keyboard
-                } else {
-                    setTimeout(() => { this.preventFocus(); }, 10); // sometimes nativeElement is not available yet
-                }
-            }
-        }
     },
 }
 </script>
