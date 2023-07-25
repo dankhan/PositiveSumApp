@@ -2,7 +2,7 @@
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
         <!-- Top Nav -->
-        <TopNav dock="top" title="Check-In?" :leftIsBackButton="true" rightRoute="checkInHelp" />
+        <TopNav dock="top" title="Check-In?" :leftIsBackButton="true" />
         
         <!-- Bottom container -->
         <StackLayout dock="bottom" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
@@ -24,12 +24,6 @@
 import TopNav from '~/components/widgets/TopNav';
 
 export default {
-    props: {
-      // Login page shown as a login frame
-        isPopover: { type: Boolean, default: false },
-        frame: { type: String, default: 'default' },
-    },
-
     components: {
         TopNav,
     },

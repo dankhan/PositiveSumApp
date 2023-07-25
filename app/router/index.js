@@ -26,6 +26,7 @@ import AddPerson from '~/components/pages/Person/AddPerson';
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
 import SignUpHelp from '~/components/pages/Help/SignUp/SignUpHelp';
 import CheckInHelp from '~/components/pages/Help/CheckIn/CheckInHelp';
+import AddPersonHelp from '~/components/pages/Help/Person/addPersonHelp';
 
 // Setup the router links
 const router = {
@@ -56,6 +57,7 @@ const router = {
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
   checkInHelp: CheckInHelp,
+  addPersonHelp: AddPersonHelp,
 }
 
 export default router;
