@@ -1,3 +1,4 @@
+// Setup vue framework
 import Vue from 'nativescript-vue';
 
 // Setup our router

@@ -1,26 +1,42 @@
-import Vue from "nativescript-vue";
+/**
+ * Main include file for the Vuex data stores
+ *
+ * Setups the main store component and loads the various sub-module vuex stores
+ * 
+ * @file   Main include file for the Vuex data stores
+ * @author <dan.khan@gmail.com>
+ * @since  1.0.0
+ * @copyright (c) 2022 All rights reserved.
+ * 
+ */
+
+// Common includes used in this file
+import Vue from 'nativescript-vue';
 import Vuex from 'vuex';
 
-// Import localStorage modules
-import LoginFrame from '@/store/LoginFrame';
-import SignUpFrame from '@/store/SignUpFrame';
+// Import our store sub-modules
+import CheckIn from '@/store/modules/CheckIn';
+import LoginFrame from '@/store/modules/LoginFrame';
+import SignUpFrame from '@/store/modules/SignUpFrame';
 
-// Use the VueX storage module
+// Enable Vuex on the vue component
 Vue.use(Vuex);
 
-// Setup our local data stores
+// Load up and configure the Vuex store
 const store = new Vuex.Store({
-  modules: {
-    LoginFrame,
-    SignUpFrame,
-  },
+    strict: true,
+    modules: {
+      CheckIn,
+      LoginFrame,
+      SignUpFrame,
+    },
 
-  /*actions: {
+    /*actions: {
     initialise({ dispatch }) {
       // Run any module init functions
       // dispatch('Backgrounds/initialise');
     },
-  },*/
+},*/
 });
 
 export default store;

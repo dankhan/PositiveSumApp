@@ -63,5 +63,20 @@
 	<string>Allow access to your contacts to add people to your Positive Sum network directly from your phone.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Whilst this app has the ability to request motion permissions, this app does not use motion tracking, nor request such permissions</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>dev.api.positivesumapp.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

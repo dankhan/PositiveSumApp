@@ -28,3 +28,5 @@ typings/
 !.vscode/extensions.json
 
 app/components/pages/Template.vue
+
+app/assets/certificates/dev.api.positivesumapp.com.crt
