@@ -29,7 +29,6 @@ const getDefaultState = () => {
 // Setup the store mutations
 const mutations = {
     SET_LIST: (state, checkin) => {
-        console.log('In SET_LIST', checkin);
         state.checkin = checkin;
     },
 

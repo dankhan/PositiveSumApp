@@ -1,7 +1,7 @@
 <template>
     <!-- Top Nav Buttons -->
     <GridLayout class="topnav" rows="26" columns="26,*,26" iosOverflowSafeArea="true" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10" v-bind="$attrs">
-        <Image col="0" class="topnav-icon-left" width="26" height="26" stretch="aspectFit" :src="leftIconSrc" marginRight="15" @tap="onTapLeftIcon" v-if="hasLeftIcon" />
+        <Image col="0" class="topnav-icon-left" width="26" height="26" stretch="aspectFit" :src="leftIconSrc" @tap="onTapLeftIcon" v-if="hasLeftIcon" />
         <Label col="1" class="topnav-title" horizontalAlignment="center" :text="title"></Label>
         <Image col="2" class="topnav-icon-left" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" :src="rightIconSrc" marginLeft="15" @tap="onTapRightIcon" v-if="hasRightIcon" />
     </GridLayout>

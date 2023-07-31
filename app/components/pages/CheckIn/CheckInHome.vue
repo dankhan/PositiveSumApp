@@ -2,33 +2,33 @@
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
         <!-- Top Nav -->
-        <TopNav dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHelp" />
+        <TopNav ref="topnav" dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHelp" />
         
         <!-- Bottom container -->
-        <ScrollView scrollBarIndicatorVisible="true" class="maxheight" dock="bottom">
-            <GridLayout rows="auto, auto" columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
-                <!-- Empty list, show help button-->
-                <StackLayout>
-                    <!-- Help Button -->
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp" v-if="!userList.length && !groupList.length">
+        <GridLayout ref="grid" dock="bottom" rows="auto" columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
+            <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview">
+                <!-- User -->
+                <v-template if="item.type == 'user'">
+                    <GridLayout class="listButtonContainer" cols="*" rows="auto" ref="listbutton">
+                        <label class="listbutton" :text="item.userName"></label>
+                    </GridLayout>
+                </v-template>
+
+                <!-- Help Button -->
+                <v-template if="item.type == 'help'">
+                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp" ref="listbutton">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_help" />
                     </GridLayout>
+                </v-template>
 
-                    <ListView for="user in userList" rowHeight="60" separatorColor="transparent">
-                        <v-template>
-                            <GridLayout class="listButtonContainer" cols="*">
-                                <label class="listbutton" :text="user.userName"></label>
-                            </GridLayout>
-                        </v-template>
-                    </ListView>
-
-                    <!-- Add Button -->
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson">
+                <!-- Add Button -->
+                <v-template if="item.type == 'add'">
+                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson" ref="listbutton">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_add" />
                     </GridLayout>
-                </StackLayout>
-            </GridLayout>
-        </ScrollView>
+                </v-template>
+            </ListView>
+        </GridLayout>
     </DockLayout>
   </Page>
 </template>
@@ -38,12 +38,11 @@
 import TopNav from '~/components/widgets/TopNav';
 
 // Common includes used in this page
+import { screen } from "@nativescript/core/platform";
 import { mapGetters } from 'vuex';
 
 // API Services
 import CheckInAPIService from '@/services/CheckInAPIService';
-
-// import * as Https from '@/common/https';
 
 // Import our custom errors
 import BadMethodAPIError from '@/errors/badmethodapierror';
@@ -72,6 +71,42 @@ export default {
         
         navOptions() {
             return { transition: { name: "slideLeft", duration: 300, curve: "ease" } }
+        },
+
+        combinedList() {
+            // Generate a combined list of items for rendering including buttons and groups
+            let list = [];
+            if (!this.userList.length && !this.groupList.length) {
+                list.push({ type: 'help' });
+            }
+
+            // Now we add a "user" type to all users in the user list
+            let users = this.userList.map( x => {
+                x.type = 'user';
+                return x
+            });
+
+            // Merge the user list
+            if (users) {
+                list = [...list, ...users];
+            }
+
+            // Always add the add button
+            list.push({ type: 'add' });
+
+            return list;
+        },
+
+        listViewHeight() {
+            const itemHeight = 54; // 44 + 10 padding-top
+            const topNavHeight = this.$refs.topnav && this.$refs.topnav.nativeView ? this.$refs.topnav.nativeView.getMeasuredHeight() / screen.mainScreen.scale : 0;
+            const containerHeight = screen.mainScreen.heightDIPs - topNavHeight;
+
+            // Get list of height and if bigger than container, set container to max height
+            const listHeight = this.combinedList.length * itemHeight;
+            const height = listHeight >= containerHeight ? '100%' : listHeight;
+            
+            return height;
         },
 
         // Map our Vuex getters
@@ -124,6 +159,11 @@ export default {
             this.errorMessage = this.errorMessage;
         });
     },
+
+    mounted() {
+        // scroll to the bottom of the listview
+        setTimeout(() => this.scrollToBottom(), 200);
+    },
     
     methods: {
         onPageLoaded(event) {
@@ -141,6 +181,22 @@ export default {
 
         async onTapAddPerson() {
             this.$goto('addPerson', this.navOptions);
+        },
+        
+        scrollListView(position) {
+            if (this.$refs.listview.nativeView && this.$refs.listview.nativeView.ios) {
+                this.$refs.listview.nativeView.ios.scrollToRowAtIndexPathAtScrollPositionAnimated(
+                    NSIndexPath.indexPathForItemInSection(position, 0),
+                    UITableViewScrollPosition.UITableViewScrollPositionTop,
+                    true
+                );
+            } else {
+                this.$refs.listview.nativeView.scrollToIndex(position);
+            }
+        },
+
+        scrollToBottom() {
+            return this.scrollListView(this.combinedList.length ? this.combinedList.length-1 : 0);
         }
     },
 }
