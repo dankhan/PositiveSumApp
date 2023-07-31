@@ -3,10 +3,12 @@
     <DockLayout>
         <!-- Top Nav -->
         <TopNav ref="topnav" dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHelp" />
-        
+
         <!-- Bottom container -->
-        <GridLayout ref="grid" dock="bottom" rows="auto" columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
-            <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview">
+        <GridLayout ref="grid" dock="bottom" rows="auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
+            <!-- Show error or loading page -->
+            <ConnectIndicator :iconType="indicatorType" :isLoading="isLoading" @tap="fetchList" />
+            <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError">
                 <!-- User -->
                 <v-template if="item.type == 'user'">
                     <GridLayout class="listButtonContainer" cols="*" rows="auto" ref="listbutton">
@@ -36,6 +38,7 @@
 <script>
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
+import ConnectIndicator from '~/components/widgets/ConnectIndicator';
 
 // Common includes used in this page
 import { screen } from "@nativescript/core/platform";
@@ -55,11 +58,14 @@ import UnsupportedMediaAPIError from '@/errors/unsupportedmediaapierror';
 export default {
     components: {
         TopNav,
+        ConnectIndicator,
     },
     
     data() {
         return {
             isLoading: false,
+            apiError: false,
+            connectError: false,
             errorMessage: '',
         }
     },
@@ -109,6 +115,16 @@ export default {
             return height;
         },
 
+        isLoadingError() {
+            return this.isLoading || this.apiError || this.connectError;
+        },
+
+        indicatorType() {
+            if (this.connectError) return 'connecterror';
+            if (this.apiError) return 'fetcherror';
+            return '';
+        },
+
         // Map our Vuex getters
         ...mapGetters({
             userId: 'CheckIn/userId',
@@ -119,45 +135,7 @@ export default {
     },
 
     beforeMount() {
-        this.isLoading = true;
-
-        // Fetch the checkin list from the server
-        CheckInAPIService.list(this.userId)
-        .then( (response) => {
-            // If the server was unreachable or timed out, the request is cancelled and goes into the then handler - trap this as a NoResponseAPIError
-            if (!response || !response.message) {
-                throw new NoResponseAPIError();
-            }
-
-            // Make sure our expected fields are in the response
-            if (!response.checkin) {
-                throw 'There was a problem fetching your data, please try again later';
-            }
-
-            // Fields will be available in our Vuex getters
-            this.isLoading = false;
-        })
-        .catch( (error) => {
-            if (error instanceof NoResponseAPIError ) {
-                this.errorMessage = 'We couldn\'t contact the server. Please check your Internet connection or try again later.';
-            } else if (error instanceof UnsupportedMediaAPIError) {
-                this.errorMessage = 'We encountered a server problem, please try again later';
-            } else if (error instanceof BadMethodAPIError) {
-                this.errorMessage = 'We encountered a technical problem, please try again later';
-            } else if (error instanceof BadRequestAPIError) {
-                this.errorMessage = 'We encountered a problem, please try again later';
-            } else if (error instanceof AuthenticationAPIError) {
-                this.errorMessage = 'We encountered an authentication problem, please logout and try again';
-            } else if (error instanceof InternalServerAPIError) {
-                this.errorMessage = 'We encountered a server problem, please try again later';
-            } else {
-                this.errorMessage = 'There was a problem, please try again later';
-            }
-
-            // Show error message
-            this.isLoading = false;
-            this.errorMessage = this.errorMessage;
-        });
+        this.fetchList();
     },
 
     mounted() {
@@ -184,20 +162,75 @@ export default {
         },
         
         scrollListView(position) {
-            if (this.$refs.listview.nativeView && this.$refs.listview.nativeView.ios) {
-                this.$refs.listview.nativeView.ios.scrollToRowAtIndexPathAtScrollPositionAnimated(
-                    NSIndexPath.indexPathForItemInSection(position, 0),
-                    UITableViewScrollPosition.UITableViewScrollPositionTop,
-                    true
-                );
-            } else {
-                this.$refs.listview.nativeView.scrollToIndex(position);
+            if (this.$refs.listview) {
+                    if (this.$refs.listview.nativeView && this.$refs.listview.nativeView.ios) {
+                    this.$refs.listview.nativeView.ios.scrollToRowAtIndexPathAtScrollPositionAnimated(
+                        NSIndexPath.indexPathForItemInSection(position, 0),
+                        UITableViewScrollPosition.UITableViewScrollPositionTop,
+                        true
+                    );
+                } else {
+                    this.$refs.listview.nativeView.scrollToIndex(position);
+                }
             }
         },
 
         scrollToBottom() {
             return this.scrollListView(this.combinedList.length ? this.combinedList.length-1 : 0);
-        }
+        },
+
+        fetchList() {
+            this.isLoading = true;
+            this.connectError = false;
+            this.apiError = false;
+
+            // Fetch the checkin list from the server
+            CheckInAPIService.list(this.userId)
+            .then( (response) => {
+                // If the server was unreachable or timed out, the request is cancelled and goes into the then handler - trap this as a NoResponseAPIError
+                if (!response || !response.message) {
+                    throw new NoResponseAPIError();
+                }
+
+                // Make sure our expected fields are in the response
+                if (!response.checkin) {
+                    throw 'There was a problem fetching your data, please try again later';
+                }
+
+                // Fields will be available in our Vuex getters
+                
+                // Reset error flags
+                this.isLoading = false;
+                this.connectError = false;
+                this.apiError = false;
+
+                // scroll to the bottom of the listview
+                setTimeout(() => this.scrollToBottom(), 200);
+            })
+            .catch( (error) => {
+                if (error instanceof NoResponseAPIError ) {
+                    this.errorMessage = 'We couldn\'t contact the server. Please check your Internet connection or try again later.';
+                    this.connectError = true;
+                } else if (error instanceof UnsupportedMediaAPIError) {
+                    this.errorMessage = 'We encountered a server problem, please try again later';
+                } else if (error instanceof BadMethodAPIError) {
+                    this.errorMessage = 'We encountered a technical problem, please try again later';
+                } else if (error instanceof BadRequestAPIError) {
+                    this.errorMessage = 'We encountered a problem, please try again later';
+                } else if (error instanceof AuthenticationAPIError) {
+                    this.errorMessage = 'We encountered an authentication problem, please logout and try again';
+                } else if (error instanceof InternalServerAPIError) {
+                    this.errorMessage = 'We encountered a server problem, please try again later';
+                } else {
+                    this.errorMessage = 'There was a problem, please try again later';
+                }
+
+                // Show error message
+                this.isLoading = false;
+                this.connectError = false;
+                this.apiError = true;
+            });
+        },
     },
 }
 </script>

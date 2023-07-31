@@ -83,7 +83,6 @@ export default {
             // Good morning 2-12, Good Afternoon 12-3, Hi 4-6, Good Evening 6-11, Good night 11-2
             const time = new Date().getHours();
             let str = '';
-            console.log('---------->'+time);
             if (time >= 2 && time < 12) {
                 str = 'Morning';
             } else if (time >= 12 && time <= 15) {
