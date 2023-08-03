@@ -18,9 +18,13 @@ import SignUpCheckPhone from '~/components/pages/SignUp/SignUpCheckPhone';
 
 // Check-In Pages
 import CheckInHome from '~/components/pages/CheckIn/CheckInHome';
+import CheckInReplyUser from '~/components/pages/CheckIn/CheckInReplyUser';
+import CheckInGroup from '~/components/pages/CheckIn/CheckInGroup';
+import YourCheckIns from '~/components/pages/CheckIn/YourCheckIns';
 
 // Person Pages
 import AddPerson from '~/components/pages/Person/AddPerson';
+import ViewPerson from '~/components/pages/Person/ViewPerson';
 
 // Help Pages
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
@@ -49,9 +53,13 @@ const router = {
 
   // Check-In pages
   checkInHome: CheckInHome,
+  checkInReplyUser: CheckInReplyUser,
+  checkInGroup: CheckInGroup,
+  yourCheckIns: YourCheckIns,
 
   // Person pages
   addPerson: AddPerson,
+  viewPerson: ViewPerson,
 
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,

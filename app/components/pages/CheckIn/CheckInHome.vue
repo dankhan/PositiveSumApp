@@ -11,19 +11,29 @@
             <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError" @itemLoading="onListViewItemLoading">
                 <!-- User -->
                 <v-template if="item.type == 'user'">
-                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" successMessage="Check-in sent!" errorMessage="Could not send check-in" />
+                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" :notifyCount=1 successMessage="Check-in sent!" errorMessage="Could not send check-in" notifyRoute="checkInReplyUser" tapRoute="viewPerson" />
+                </v-template>
+
+                <!-- Group -->
+                <v-template if="item.type == 'group'">
+                    <ProgressBarButton :text="'#'+item.groupName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" :notifyCount=3 successMessage="Group check-in sent!" errorMessage="Could not send group check-in" notifyRoute="checkInGroup" :showArrow="true" arrowRoute="checkInGroup" tapRoute="checkInGroup" />
                 </v-template>
 
                 <!-- Help Button -->
                 <v-template if="item.type == 'help'">
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp">
+                    <GridLayout class="listButtonContainer" columns="*" @tap="onTapHelp">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_help" />
                     </GridLayout>
                 </v-template>
 
+                <!-- Your Check-Ins Button -->
+                <v-template if="item.type == 'yourcheckins'">
+                    <ProgressBarButton text="Your check-ins" :notifyCount=5 notifyRoute="yourCheckIns" :hasLongPress="false" :showArrow="true" arrowRoute="yourCheckIns" tapRoute="yourCheckIns" />
+                </v-template>
+
                 <!-- Add Button -->
                 <v-template if="item.type == 'add'">
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson">
+                    <GridLayout class="listButtonContainer" columns="*" @tap="onTapAddPerson">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_add" />
                     </GridLayout>
                 </v-template>
@@ -106,7 +116,26 @@ export default {
                 list = [...list, ...users];
             }
 
-            // Always add the add button
+            // Now we add a "group" type to all groups in the group list
+            let groups = this.groupList.map( x => {
+                x.type = 'group';
+                return x
+            });
+
+            // Merge the group list
+            if (groups) {
+                list = [...list, ...groups];
+            }
+
+            // Sort the list by the due date, showing most due at the bottom of the list for easy access
+            list.sort((a, b) => parseInt(b.due) - parseInt(a.due));
+
+            // Add the YourCheckIns at the bottom of the list
+            if (!this.yourCheckIns.length && !this.yourCheckIns.length) {
+                list.push({ type: 'yourcheckins' });
+            }
+
+            // Always add the add button right at the bottom
             list.push({ type: 'add' });
 
             return list;
@@ -207,6 +236,7 @@ export default {
                 }
 
                 // Fields will be available in our Vuex getters
+                console.log(this.groupList);
                 
                 // Reset error flags
                 this.isLoading = false;

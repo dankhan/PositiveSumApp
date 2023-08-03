@@ -16,7 +16,7 @@ import CheckInAPI from '@/services/CheckInAPIService.js';
 // Setup the default state
 const getDefaultState = () => {
     return {
-        // User details
+        // check-in details
         checkin: {
             userId: null,
             yourCheckIns: [],
@@ -57,7 +57,7 @@ const getters = {
     },
 
     groupList: state => {
-        return state.checkIn && state.checkin.groupList ? state.checkin.groupList : [];
+        return state.checkin && state.checkin.groupList ? state.checkin.groupList : [];
     },
 };
 
