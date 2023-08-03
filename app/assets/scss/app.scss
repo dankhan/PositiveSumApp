@@ -119,3 +119,12 @@ Page {
     text-align: center;
     color: $color-form-error;
 }
+
+.memo {
+    font-style: italic;
+    font-family: $font-family-italic;
+    font-size: $font-size-small;
+    color: $color-primary-muted;
+    text-align: center;
+    margin-top: 5;    
+}

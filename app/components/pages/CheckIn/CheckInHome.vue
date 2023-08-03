@@ -5,13 +5,13 @@
         <TopNav ref="topnav" dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHelp" />
 
         <!-- Bottom container -->
-        <GridLayout ref="grid" dock="bottom" rows="auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
+        <GridLayout ref="grid" dock="bottom" rows="auto,auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
             <!-- Show error or loading page -->
             <ConnectIndicator :iconType="indicatorType" :isLoading="isLoading" @tap="fetchList" />
             <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError" @itemLoading="onListViewItemLoading">
                 <!-- User -->
                 <v-template if="item.type == 'user'">
-                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" />
+                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" successMessage="Check-in sent!" errorMessage="Could not send check-in" />
                 </v-template>
 
                 <!-- Help Button -->
@@ -28,6 +28,9 @@
                     </GridLayout>
                 </v-template>
             </ListView>
+
+            <!-- Show memo line -->
+            <label row="1" class="memo" text="Long-tap to check-in, tap to view, notify icon to reply" v-if="showMemo"></label>
         </GridLayout>
     </DockLayout>
   </Page>
@@ -79,6 +82,10 @@ export default {
         
         navOptions() {
             return { transition: { name: "slideLeft", duration: 300, curve: "ease" } }
+        },
+
+        showMemo() {
+            return this.userList.length || this.groupList.length;
         },
 
         combinedList() {
