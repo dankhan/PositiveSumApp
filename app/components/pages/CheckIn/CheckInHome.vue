@@ -8,24 +8,22 @@
         <GridLayout ref="grid" dock="bottom" rows="auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
             <!-- Show error or loading page -->
             <ConnectIndicator :iconType="indicatorType" :isLoading="isLoading" @tap="fetchList" />
-            <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError">
+            <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError" @itemLoading="onListViewItemLoading">
                 <!-- User -->
                 <v-template if="item.type == 'user'">
-                    <GridLayout class="listButtonContainer" cols="*" rows="auto" ref="listbutton">
-                        <label class="listbutton" :text="item.userName"></label>
-                    </GridLayout>
+                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" />
                 </v-template>
 
                 <!-- Help Button -->
                 <v-template if="item.type == 'help'">
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp" ref="listbutton">
+                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapHelp">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_help" />
                     </GridLayout>
                 </v-template>
 
                 <!-- Add Button -->
                 <v-template if="item.type == 'add'">
-                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson" ref="listbutton">
+                    <GridLayout class="listButtonContainer" cols="*" @tap="onTapAddPerson">
                         <Image class="listbutton" width="26" height="26" stretch="aspectFit" src="res://icons_listbutton_add" />
                     </GridLayout>
                 </v-template>
@@ -39,6 +37,7 @@
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
 import ConnectIndicator from '~/components/widgets/ConnectIndicator';
+import ProgressBarButton from '~/components/widgets/ProgressBarButton';
 
 // Common includes used in this page
 import { screen } from "@nativescript/core/platform";
@@ -59,6 +58,7 @@ export default {
     components: {
         TopNav,
         ConnectIndicator,
+        ProgressBarButton,
     },
     
     data() {
@@ -67,6 +67,8 @@ export default {
             apiError: false,
             connectError: false,
             errorMessage: '',
+
+            isItemError: false,
         }
     },
 
@@ -137,7 +139,7 @@ export default {
     beforeMount() {
         this.fetchList();
     },
-
+  
     mounted() {
         // scroll to the bottom of the listview
         setTimeout(() => this.scrollToBottom(), 200);
@@ -160,7 +162,7 @@ export default {
         async onTapAddPerson() {
             this.$goto('addPerson', this.navOptions);
         },
-        
+
         scrollListView(position) {
             if (this.$refs.listview) {
                     if (this.$refs.listview.nativeView && this.$refs.listview.nativeView.ios) {
@@ -231,6 +233,26 @@ export default {
                 this.apiError = true;
             });
         },
+
+        onListViewItemLoading(args) {
+            // We remove the selected item background color on load
+            if (global.isIOS) {
+                const cell = args.ios;
+                cell.selectionStyle = UITableViewCellSelectionStyle.UITableViewCellSelectionStyleNone;
+            }
+        },
+
+        onLongPressItem(data) {
+            return new Promise((resolve, reject) => {
+                try {
+                    //throw ('Error');
+                    console.log("success", data);
+                    resolve({ data });
+                } catch (e) {
+                    throw(e);
+                }
+            });
+        },
     },
 }
 </script>
@@ -238,19 +260,7 @@ export default {
 <style scoped lang="scss">
 @import '~/assets/scss/app.scss';
 
-.list-item {
-    background-color: $color-form-input-background;
-    border-radius: $button-radius;
-}
-
-.listbutton {
-    color: $color-listbutton;
-    font-family: $font-family-semibold;
-    font-weight: $font-weight-semibold;
-}
-
-.maxheight {
-    height: 100%;
-    min-height: 100%;
+.listButtonContainer {
+    padding: 0;
 }
 </style>
