@@ -291,7 +291,7 @@ export default {
 .listbutton {
     color: $color-listbutton;
     font-family: $font-family-semibold;
-    font-weight: $font-weight-semibold;
+    font-weight: $font-weight;
     padding: 10;
     height: 44;
 }

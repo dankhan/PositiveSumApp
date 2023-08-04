@@ -11,6 +11,7 @@
     "@nativescript/contacts": "^2.1.0",
     "@nativescript/core": "~8.5.0",
     "@nativescript/iqkeyboardmanager": "^2.1.1",
+    "@nativescript/social-share": "^2.3.0",
     "@nativescript/theme": "~3.0.2",
     "axios": "^0.27.2",
     "crypto-es": "^2.0.4",

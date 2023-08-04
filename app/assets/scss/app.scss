@@ -21,6 +21,12 @@ Page {
     letter-spacing: $font-size-heading-letter-spacing;
 }
 
+.heading2 {
+    font-size: $font-size-heading2;
+    font-weight: $font-weight-bold;
+    letter-spacing: $font-size-heading-letter-spacing;
+}
+
 .paragraph {
     font-size: $font-size-paragraph;
     font-weight: $font-weight;
@@ -51,7 +57,7 @@ Page {
 
 .button-primary:active {
     android-elevation: $button-elevation-active;
-    background-color: $color-button-primary-background-active;
+    /*background-color: $color-button-primary-background-active;*/
     border-color: $color-button-primary-border-active;
     color: $color-button-primary-active;
 }

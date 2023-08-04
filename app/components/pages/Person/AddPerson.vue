@@ -368,7 +368,6 @@ export default {
                                 // Phone number (may be a number not a string)
                                 if (result.internationalPhoneNumber.hasOwnProperty('nationalNumber') && ("" + result.internationalPhoneNumber.nationalNumber.length)) {
                                     this.formPhone = "" + result.internationalPhoneNumber.nationalNumber;           // convert into string
-                                    console.log('this.formPhone = ' + result.internationalPhoneNumber.nationalNumber);
                                 }
                             }
                         }                        

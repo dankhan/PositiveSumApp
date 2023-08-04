@@ -7,8 +7,14 @@
     </GridLayout>
 </template>
 
-<script >
-  export default {
+<script>
+// In-page components
+import { Dialogs } from "@nativescript/core";
+
+// Use the social-share plugin to access share button functionality
+import { shareText } from '@nativescript/social-share'
+
+export default {
     props: {
         // Title Config
         title: { type: String, default: "" },
@@ -22,7 +28,12 @@
         // Right Button Config
         rightIsHelpButton: { type: Boolean, default: false },
         rightIsProfile: { type: Boolean, default: false },
-        rightRoute: { type: [ String, Boolean ], default: false }
+        rightRoute: { type: [ String, Boolean ], default: false },
+        rightIsShareButton: { type: Boolean, default: false },
+        shareData: { type: Object, default() { return {} } },
+        shareSubject: { type: String, default: null },
+        rightIsDeleteButton: { type: Boolean, default: false },
+        deleteText: { type: String, default: "Please confirm you wish to delete this item?" },
     },
     
     data() {
@@ -33,11 +44,11 @@
     
     computed: {
         hasLeftIcon() {
-            return this.leftIsBackButton | this.leftIsCloseButton | this.leftIsHomeButton;
+            return this.leftIsBackButton || this.leftIsCloseButton || this.leftIsHomeButton;
         },
 
         hasRightIcon() {
-            return this.rightIsHelpButton | this.rightIsProfile;
+            return this.rightIsHelpButton || this.rightIsProfile || this.rightIsShareButton || this.rightIsDeleteButton;
         },
 
         // Return a string version of the left icon type (or false if no icon)
@@ -53,6 +64,8 @@
             // Return a string version of the right icon type (or false if no icon)
             if (!this.hasRightIcon) return false;
             if (this.rightIsHelpButton) return "help";
+            if (this.rightIsShareButton) return "share";
+            if (this.rightIsDeleteButton) return "delete";
             if (this.rightIsProfile) return "profile";
             return false;
         },
@@ -69,6 +82,8 @@
         rightIconSrc() {
             switch (this.rightType) {
                 case "help": { return "res://icons_help"; }
+                case "share": { return "res://icons_share"; }
+                case "delete": { return "res://icons_delete"; }
                 case "profile": { return "res://icons_profile"; }
                 default: { return ""; }
             }
@@ -98,6 +113,8 @@
             // Perform different action based on icon type
             switch (this.rightType) {
                 case "help": { return this.onTapHelp(); }
+                case "share": { return this.onTapShare(); }
+                case "delete": { return this.onTapDelete(); }
                 case "profile": { return this.onTapProfile(); }
                 default: { return true; }
             }
@@ -135,6 +152,29 @@
             if (this.rightRoute) {
                 this.$goto(this.rightRoute, this.navOptions);
             }
+        },
+
+        onTapShare() {
+            // Let parent know we performed an action so it can respond if needed
+            this.$emit('share', { data: this.shareData });
+
+            // Show the share dialog
+            if (Object.keys(this.shareData).length) {
+                shareText(JSON.stringify(this.shareData), this.shareSubject);
+            }
+        },
+
+        async onTapDelete() {
+            return Dialogs.confirm(this.deleteText)
+                .then((result) => {
+                    if (result) {
+                        console.log('delete');
+                        return true;
+                    } else {
+                        console.log('cancel delete');
+                        return false;
+                }
+            });
         },
 
         onTapProfile() {
