@@ -8,6 +8,8 @@
         <GridLayout ref="grid" dock="bottom" rows="auto,auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
             <!-- Show error or loading page -->
             <ConnectIndicator :iconType="indicatorType" :isLoading="isLoading" @tap="fetchList" />
+
+            <!-- Render the item list -->
             <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError" @itemLoading="onListViewItemLoading">
                 <!-- User -->
                 <v-template if="item.type == 'user'">
@@ -95,7 +97,7 @@ export default {
         },
 
         showMemo() {
-            return this.userList.length || this.groupList.length;
+            return (this.userList.length || this.groupList.length) && !this.isLoadingError;
         },
 
         combinedList() {
@@ -236,8 +238,7 @@ export default {
                 }
 
                 // Fields will be available in our Vuex getters
-                console.log(this.groupList);
-                
+
                 // Reset error flags
                 this.isLoading = false;
                 this.connectError = false;
