@@ -23,10 +23,12 @@ export default {
         leftIsBackButton: { type: Boolean, default: false },
         leftIsCloseButton: { type: Boolean, default: false },
         leftIsHomeButton: { type: Boolean, default: false },
-        leftModalData: { type: [ String, Boolean, Array, Object ], default: true },
+        modalData: { type: [ String, Boolean, Array, Object ], default: true },
 
         // Right Button Config
         rightIsHelpButton: { type: Boolean, default: false },
+        rightIsEditButton: { type: Boolean, default: false },
+        rightIsCancelEditButton: { type: Boolean, default: false },
         rightIsProfile: { type: Boolean, default: false },
         rightRoute: { type: [ String, Boolean ], default: false },
         rightIsShareButton: { type: Boolean, default: false },
@@ -48,7 +50,7 @@ export default {
         },
 
         hasRightIcon() {
-            return this.rightIsHelpButton || this.rightIsProfile || this.rightIsShareButton || this.rightIsDeleteButton;
+            return this.rightIsHelpButton || this.rightIsProfile || this.rightIsShareButton || this.rightIsDeleteButton || this.rightIsEditButton || this.rightIsCancelEditButton;
         },
 
         // Return a string version of the left icon type (or false if no icon)
@@ -67,6 +69,8 @@ export default {
             if (this.rightIsShareButton) return "share";
             if (this.rightIsDeleteButton) return "delete";
             if (this.rightIsProfile) return "profile";
+            if (this.rightIsEditButton) return "edit";
+            if (this.rightIsCancelEditButton) return "canceledit";
             return false;
         },
 
@@ -85,6 +89,8 @@ export default {
                 case "share": { return "res://icons_share"; }
                 case "delete": { return "res://icons_delete"; }
                 case "profile": { return "res://icons_profile"; }
+                case "edit": { return "res://icons_edit"; }
+                case "canceledit": { return "res://icons_close"; }
                 default: { return ""; }
             }
         },
@@ -116,6 +122,8 @@ export default {
                 case "share": { return this.onTapShare(); }
                 case "delete": { return this.onTapDelete(); }
                 case "profile": { return this.onTapProfile(); }
+                case "edit": { return this.onTapEdit(); }
+                case "canceledit": { return this.onTapCancelEdit(); }
                 default: { return true; }
             }
         },
@@ -130,10 +138,10 @@ export default {
 
         onTapClose() {
             // Let parent know we performed an action so it can respond if needed
-            this.$emit('close', this.leftModalData);
+            this.$emit('close', this.modalData);
 
             // Pass back any modal data that was passed in
-            this.$modal.close(this.leftModalData);
+            this.$modal.close(this.modalData);
         },
 
         onTapHome() {
@@ -184,6 +192,16 @@ export default {
             if (this.rightRoute) {
                 this.$goto(this.rightRoute, this.navOptions);
             }
+        },
+
+        onTapEdit() {
+            // Let parent know we performed an action so it can respond if needed
+            this.$emit('edit');
+        },
+
+        onTapCancelEdit() {
+            // Let parent know we performed an action so it can respond if needed
+            this.$emit('canceledit');
         },
     },
   }

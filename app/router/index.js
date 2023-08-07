@@ -60,7 +60,7 @@ const router = {
   // Person pages
   addPerson: AddPerson,
   viewPerson: ViewPerson,
-
+  
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
