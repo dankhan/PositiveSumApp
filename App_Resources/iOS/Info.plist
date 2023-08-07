@@ -43,6 +43,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+  	<array>
+    	<string>itms-apps</string>
+    	<string>mailto</string>
+		<string>tel</string>
+		<string>sms</string>
+  	</array>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Whilst this app has the ability to request bluetooth permissions, this app does not use bluetooth, nor request such permissions</string>
 	<key>NSCalendarsUsageDescription</key>

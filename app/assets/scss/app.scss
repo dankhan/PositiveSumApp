@@ -82,6 +82,19 @@ Page {
     color: $color-button-inverted-active;
 }
 
+.button-primary-disabled {
+    android-elevation: $button-elevation;
+    background-color: $color-button-primary-background-disabled;
+    border-color: $color-button-primary-background-disabled;
+    border-radius: $button-radius;
+    border-width: $button-border-width;
+    color: $color-button-primary;
+    font-size: $font-size-button;
+    font-weight: $font-weight-bold;
+    text-transform: $font-size-button-text-transform;
+    width: $button-width;
+}
+
 .listButtonContainer {
     width: 100%;
     height: 44;

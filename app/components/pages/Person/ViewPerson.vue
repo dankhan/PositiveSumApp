@@ -14,19 +14,19 @@
 
                         <!-- Buttons -->
                         <GridLayout columns="auto,*,10,auto,*,10,auto,*,10,30" marginBottom="0">
-                            <Button col="1" class="button-primary" backgroundImage="res://icons_button_email" backgroundRepeat="no-repeat" backgroundPosition="10% 50%">
+                            <Button col="1" :class="{ 'button-primary': originalFormEmail.length, 'button-primary-disabled': !originalFormEmail.length }" backgroundImage="res://icons_button_email" backgroundRepeat="no-repeat" backgroundPosition="10% 50%" @tap="onTapAction('email')">
                                 <FormattedString>
                                     <Span text="    Email" class="button-label"></Span>
                                 </FormattedString>
                             </Button>
                             
-                            <Button col="4" class="button-primary" backgroundImage="res://icons_button_phone" backgroundRepeat="no-repeat" backgroundPosition="15% 50%">
+                            <Button col="4" :class="{ 'button-primary': originalFormPhone.length, 'button-primary-disabled': !originalFormPhone.length }" backgroundImage="res://icons_button_phone" backgroundRepeat="no-repeat" backgroundPosition="15% 50%" @tap="onTapAction('phone')">
                                 <FormattedString>
                                     <Span text="    Call" class="button-label"></Span>
                                 </FormattedString>
                             </Button>
                             
-                            <Button col="7" class="button-primary" backgroundImage="res://icons_button_msg" backgroundRepeat="no-repeat" backgroundPosition="15% 55%">
+                            <Button col="7" :class="{ 'button-primary': originalFormPhone.length, 'button-primary-disabled': !originalFormPhone.length }" backgroundImage="res://icons_button_msg" backgroundRepeat="no-repeat" backgroundPosition="15% 55%" @tap="onTapAction('msg')">
                                 <FormattedString>
                                     <Span text="    Msg" class="button-label"></Span>
                                 </FormattedString>
@@ -43,11 +43,11 @@
                     
                         <!-- Name -->
                         <GridLayout v-if="!isEdit" class="listButtonContainer" columns="*" rows="24" marginBottom="10">
-                            <label col="0" class="listbutton" :text="formName"></label>
+                            <label class="listbutton" :text="formName"></label>
                         </GridLayout>
                         <StackLayout>
                             <GridLayout v-if="isEdit" rows="44,auto" class="input-border" columns="*,auto" marginBottom="10" :backgroundColor="nameBackgroundColor">
-                                <TextField col="0" class="form-input" v-model="formName" hint="Name..." :autocorrect="false" :borderColor="nameBackgroundColor" :backgroundColor="nameBackgroundColor"></TextField>
+                                <TextField class="form-input" v-model="formName" hint="Name..." :autocorrect="false" :borderColor="nameBackgroundColor" :backgroundColor="nameBackgroundColor"></TextField>
 
                                 <!-- Save or loading indicator -->
                                 <Image v-if="!isNameSaving" :src="nameEditIcon" col="1" class="form-icon" verticalAlignment="middle" height="24" width="24" @tap="onTapSaveForm('name')" />
@@ -57,7 +57,7 @@
 
                         <!-- Email -->
                         <GridLayout v-if="!isEdit" class="listButtonContainer" columns="*" rows="24" marginBottom="5">
-                            <label col="0" class="listbutton" :text="formEmail"></label>
+                            <label class="listbutton" :text="formEmail"></label>
                         </GridLayout>
                         <StackLayout>
                             <GridLayout v-if="isEdit" rows="44,auto" class="input-border" columns="*,auto" marginBottom="5" :backgroundColor="emailBackgroundColor">
@@ -78,7 +78,10 @@
                             </StackLayout>
 
                             <!-- Phone number -->
-                            <GridLayout :row="0" :col="1" class="input-border" columns="*,auto" rows="44" marginLeft="10" :backgroundColor="phoneBackgroundColor">
+                            <GridLayout v-if="!isEdit" :row="0" :col="1" class="listButtonContainer" columns="*" rows="24" marginLeft="10">
+                                <label class="listbutton" :text="formPhone"></label>
+                            </GridLayout>
+                            <GridLayout v-if="isEdit" :row="0" :col="1" class="input-border" columns="*,auto" rows="44" marginLeft="10" :backgroundColor="phoneBackgroundColor">
                                 <TextField col="0" class="form-input" v-model="formPhone" hint="Mobile number..." keyboardType="phone" :borderColor="phoneBackgroundColor" :backgroundColor="phoneBackgroundColor"></TextField>
 
                                 <!-- Save or loading indicator -->
@@ -136,6 +139,9 @@ import GroupSelect from '~/components/pages/Person/GroupSelect';
 // Use the telephony plugin to get country code details from the phone sim
 import * as PhoneNumberProvider from '~/common/phonenumber';
 
+// Open Url handlers
+import utils from "@nativescript/core";
+
 export default {
     components: {
         TopNav,
@@ -149,12 +155,12 @@ export default {
     data() {
         return {
             // Form fields
-            formName: 'Dan Khan',
-            formEmail: 'dan.khan@gmail.com',
-            formPhone: '212034298',
-            formCountryCode: 'nz',      // ISO 2 char country code (e.g. US)
-            formCountryDialCode: '+64',  // country dial code (e.g. 1)
-            formPhoneNationalNumber: '+64212034298',
+            formName: 'John Appleseed',
+            formEmail: 'John-Appleseed@mac.com',
+            formPhone: '8885555512',
+            formCountryCode: 'us',      // ISO 2 char country code (e.g. US)
+            formCountryDialCode: '+1',  // country dial code (e.g. 1)
+            formPhoneNationalNumber: '+18885555512',
             formFrequency: 2,
             frequencyOptions: [
                 'Daily', 'Weekly', 'Fortnightly', 'Monthly', 'Every 2 months', 'Every 3 months', 'Every 6 months'
@@ -346,6 +352,124 @@ export default {
             event.object.page.statusBarStyle = 'dark';
         },
 
+        // @see https://github.com/ludwiktrammer/nativescript-open-app - bringing in here since that version has outdated includes
+        openApp(appID, storeFallback, appleStoreId, action='', data='') {
+            if (storeFallback === void 0) { storeFallback = true; }
+            if (global.isIOS) {
+                var sharedApplication = UIApplication.sharedApplication;
+                var url = NSURL.URLWithString(appID.trim());
+                if (sharedApplication.canOpenURL(url)) {
+                    // open app
+                    sharedApplication.openURL(url);
+                    return true;
+                }
+                else if (storeFallback && appleStoreId) {
+                    // can't open app - open store
+                    url = NSURL.URLWithString("itms-apps://itunes.apple.com/app/id" + appleStoreId);
+                    if (sharedApplication.canOpenURL(url)) {
+                        sharedApplication.openURL(url);
+                    }
+                    else {
+                        // can't open store - open the website
+                        url = NSURL.URLWithString("https://itunes.apple.com/app/id" + appleStoreId);
+                        sharedApplication.openURL(url);
+                    }
+                }
+                return false;
+            } else {
+                // Android
+                var context = utils.ad.getApplicationContext();
+                var Intent = android.content.Intent;
+                
+                // Use action passed in as intent or get the default
+                if (action) {
+                    var intent = new Intent(action, data);
+                } else {
+                    var intent = context.getPackageManager().getLaunchIntentForPackage(appID);
+                }
+                
+                if (intent) {
+                    // Set any custom data
+                    if (data.length) {
+                        intent.setData(android.net.Uri.parse(data));
+                    }
+
+                    // Open app
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                    return true;
+                }
+                else if (storeFallback) {
+                    // Can't open app - open store
+                    intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(android.net.Uri.parse("https://play.google.com/store/apps/details?id=" + appID));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+                return false;
+            }
+        },
+
+        onTapAction(type) {
+            // Opening apps differs on android and iOS
+            let url = '';
+            let scheme = '';
+            let appUrl = '';
+            let action = '';
+            let data = '';
+
+            if (global.isIOS) {
+                
+                if (type === 'email') {
+                    url = this.originalFormEmail.length ? this.originalFormEmail : '';
+                    scheme = 'mailto';
+                }
+
+                if (type === 'phone') {
+                    url = this.originalFormCountryDialCode.length && this.originalFormPhone.length ? this.originalFormCountryDialCode + this.originalFormPhone : '';
+                    scheme = 'tel';
+                }
+
+                if (type === 'msg') {
+                    url = this.originalFormCountryDialCode.length && this.originalFormPhone.length ? this.originalFormCountryDialCode + this.originalFormPhone : '';
+                    scheme = 'sms';
+                }
+
+                if (url.length && scheme.length) {
+                    const appUrl = scheme + ':' + url;
+                }
+            } else {
+                // Use android application Ids
+                const emailAppId = 'com.google.android.gm';                 // gmail
+                const messagesAppId = 'com.google.android.apps.messaging';
+                const phoneAppId = 'com.google.android.dialer';
+
+                if (type === 'email') {
+                    url = emailAppId;
+                    action = android.content.Intent.ACTION_SENDTO;
+                    data = this.originalFormEmail.length ? 'mailto:' + this.originalFormEmail : '';
+                }
+
+                if (type === 'phone') {
+                    url = phoneAppId;
+                    action = android.content.Intent.ACTION_DIAL;
+                    data = this.originalFormPhone.length ? 'tel:+' + this.originalFormCountryDialCode + this.originalFormPhone : '';
+                }
+
+                if (type === 'msg') {
+                    url = messagesAppId;
+                    action = android.content.Intent.ACTION_VIEW;
+                    scheme = 'sms';
+                    data = this.originalFormPhone.length ? 'tel:+' + this.originalFormCountryDialCode + this.originalFormPhone : '';
+                }
+            }
+
+            // open the app
+            if (url.length) {
+                this.openApp(appUrl, true, null, action, data);
+            }
+        },
+        
         onTapShare() {
             const share = {
                 "name": this.formName,
@@ -576,6 +700,10 @@ export default {
 }
 
 .listButtonContainer {
+    margin-top: 0;
+    width: auto;
+    height: 44;
+    padding: 10;
     margin-top: 0;
 }
 
