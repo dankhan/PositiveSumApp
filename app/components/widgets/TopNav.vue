@@ -1,9 +1,10 @@
 <template>
     <!-- Top Nav Buttons -->
-    <GridLayout class="topnav" rows="26" columns="26,*,26" iosOverflowSafeArea="true" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10" v-bind="$attrs">
-        <Image col="0" class="topnav-icon-left" width="26" height="26" stretch="aspectFit" :src="leftIconSrc" @tap="onTapLeftIcon" v-if="hasLeftIcon" />
+    <GridLayout class="topnav" rows="26" columns="26,*,auto,26" iosOverflowSafeArea="true" marginLeft="20" marginRight="20" marginTop="20" marginBottom="10" v-bind="$attrs">
+        <Image col="0" class="topnav-icon" width="26" height="26" stretch="aspectFit" :src="leftIconSrc" @tap="onTapLeftIcon" v-if="hasLeftIcon" />
         <Label col="1" class="topnav-title" horizontalAlignment="center" :text="title"></Label>
-        <Image col="2" class="topnav-icon-left" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" :src="rightIconSrc" marginLeft="15" @tap="onTapRightIcon" v-if="hasRightIcon" />
+        <Image col="2" class="topnav-icon" width="26" height="26" horizontalAlignment="right" verticalAlignment="middle" stretch="aspectFit" :src="middleIconSrc" marginTop="-5" marginLeft="15" marginRight="20" @tap="onTapMiddleIcon" v-if="hasMiddleIcon" />
+        <Image col="3" class="topnav-icon" width="26" height="26" horizontalAlignment="right" verticalAlignment="middle" stretch="aspectFit" :src="rightIconSrc" marginLeft="15" @tap="onTapRightIcon" v-if="hasRightIcon" />
     </GridLayout>
 </template>
 
@@ -24,6 +25,9 @@ export default {
         leftIsCloseButton: { type: Boolean, default: false },
         leftIsHomeButton: { type: Boolean, default: false },
         modalData: { type: [ String, Boolean, Array, Object ], default: true },
+
+        // Middle Right Button
+        middleIsDeleteButton: { type: Boolean, default: false },
 
         // Right Button Config
         rightIsHelpButton: { type: Boolean, default: false },
@@ -49,6 +53,10 @@ export default {
             return this.leftIsBackButton || this.leftIsCloseButton || this.leftIsHomeButton;
         },
 
+        hasMiddleIcon() {
+            return this.middleIsDeleteButton;
+        },
+        
         hasRightIcon() {
             return this.rightIsHelpButton || this.rightIsProfile || this.rightIsShareButton || this.rightIsDeleteButton || this.rightIsEditButton || this.rightIsCancelEditButton;
         },
@@ -59,6 +67,13 @@ export default {
             if (this.leftIsBackButton) return "back";
             if (this.leftIsCloseButton) return "close";
             if (this.leftIsHomeButton) return "home";
+            return false;
+        },
+
+        // Return a string version of the middle icon type (or false if no icon)
+        middleType() {
+            if (!this.hasMiddleIcon) return false;
+            if (this.middleIsDeleteButton) return "delete";
             return false;
         },
         
@@ -79,6 +94,13 @@ export default {
                 case "back": { return "res://icons_back"; }
                 case "close": { return "res://icons_close"; }
                 case "home": { return "res://icons_home"; }
+                default: { return ""; }
+            }
+        },
+
+        middleIconSrc() {
+            switch (this.middleType) {
+                case "delete": { return "res://icons_delete"; }
                 default: { return ""; }
             }
         },
@@ -111,6 +133,14 @@ export default {
                 case "back": { return this.onTapBack(); }
                 case "close": { return this.onTapClose(); }
                 case "home": { return this.onTapHome(); }
+                default: { return true; }
+            }
+        },
+
+        onTapMiddleIcon() {
+            // Perform different action based on icon type
+            switch (this.middleType) {
+                case "delete": { return this.onTapDelete(); }
                 default: { return true; }
             }
         },
@@ -176,10 +206,9 @@ export default {
             return Dialogs.confirm(this.deleteText)
                 .then((result) => {
                     if (result) {
-                        console.log('delete');
-                        return true;
+                        // Let parent deal with delete action
+                        return this.$emit('delete');
                     } else {
-                        console.log('cancel delete');
                         return false;
                 }
             });

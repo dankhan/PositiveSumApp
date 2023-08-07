@@ -1,8 +1,8 @@
 <template>
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
-        <!-- Top Nav :rightIsDeleteButton="true" deleteText="Remove Dan from your network and delete all of their data?" -->
-        <TopNav dock="top" :leftIsBackButton="true" :rightIsEditButton="!isEdit" :rightIsCancelEditButton="isEdit" @edit="onEdit" @canceledit="onCancelEdit" />
+        <!-- Top Nav -->
+        <TopNav dock="top" :leftIsBackButton="true" :rightIsEditButton="!isEdit" :rightIsCancelEditButton="isEdit" @edit="onEdit" @canceledit="onCancelEdit" @delete="onDelete" :middleIsDeleteButton="isEdit" deleteText="Remove this contact from your network and delete all of their data?" />
         
         <!-- Bottom container -->
         <ScrollView dock="bottom" marginTop="20">
@@ -33,7 +33,7 @@
                             </Button>
 
                             <!-- Share Button -->
-                            <Image col="9" class="topnav-icon-left" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" src="res://icons_share" marginLeft="10" @tap="onTapShare" />
+                            <Image col="9" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" src="res://icons_share" marginLeft="10" @tap="onTapShare" />
                         </GridLayout>
 
                         <!-- Last Check-in Date -->
@@ -447,6 +447,8 @@ export default {
                 //this.isSaveSuccess = true;
                 this.isSaveError = true;
 
+                // TODO: Trim length of fields
+                
                 // Update fields to saved values
                 if (this.isSaveSuccess) {
                     this.originalFormName = this.formName;
@@ -473,7 +475,7 @@ export default {
 
         onTapRemoveGroup(groupId) {
             const group = this.groupsList.find((g) => g.groupId === groupId);
-            return Dialogs.confirm('Really remove from ' + group.groupName + '?')
+            return Dialogs.confirm('Really remove this contact from ' + group.groupName + '?')
                 .then((result) => {
                     if (result) {
                         this.isSaveSuccess = false;
@@ -520,7 +522,11 @@ export default {
                 // Update the group list
                 this.groupsList = result;
             });
-        }
+        },
+
+        onDelete() {
+            console.log('deleting user');
+        },
     },
 }
 </script>
