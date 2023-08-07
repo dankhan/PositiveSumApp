@@ -127,7 +127,7 @@
 <script>
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
-import { Dialogs } from "@nativescript/core";
+import { Dialogs, utils } from "@nativescript/core";
 
 // Use the social-share plugin to access share button functionality
 import { shareText } from '@nativescript/social-share'
@@ -139,8 +139,16 @@ import GroupSelect from '~/components/pages/Person/GroupSelect';
 // Use the telephony plugin to get country code details from the phone sim
 import * as PhoneNumberProvider from '~/common/phonenumber';
 
-// Open Url handlers
-import utils from "@nativescript/core";
+// API Services
+import PersonAPIService from '@/services/PersonAPIService';
+
+// Import our custom errors
+import BadMethodAPIError from '@/errors/badmethodapierror';
+import BadRequestAPIError from '@/errors/badrequestapierror';
+import InternalServerAPIError from '@/errors/internalserverapierror';
+import NoResponseAPIError from '@/errors/noresponseapierror';
+import AuthenticationAPIError from '@/errors/authenticationapierror';
+import UnsupportedMediaAPIError from '@/errors/unsupportedmediaapierror';
 
 export default {
     components: {
@@ -500,17 +508,6 @@ export default {
 
             // Set the flag image
             this.setFlagImage();
-
-            // Reset any save states
-            this.isNameEdit = false;
-            this.isEmailEdit = false;
-            this.isPhoneEdit = false;
-            this.isGroupRemove = false;
-            this.isNameSaving = false;
-            this.isEmailSaving = false;
-            this.isPhoneSaving = false;
-            this.isSaveSuccess = false;
-            this.isSaveError = false;
         },
 
         // Update the flag to show in the UI according to the currently set country
@@ -539,15 +536,21 @@ export default {
                         this.formCountryCode = result['iso2'];
                         this.formCountryDialCode = '+' + result['dialCode'];
                         this.setFlagImage();
-                    }
 
-                    console.log(this.originalFormCountryCode, this.originalFormCountryDialCode, this.originalFormPhone, result['iso2'], result['dialCode'], this.formPhone);
+                        // Set the new international number data field
+                        this.formPhoneNationalNumber = PhoneNumberProvider.getInternationalPhoneNumber(this.formPhone, this.formCountryCode);
+                    }
                 });
         },
         
         onTapSaveForm(field) {
+            // Reset submit state
             this.isSaveSuccess = false;
             this.isSaveError = false;
+
+            if (this.saveTimer) {
+                clearTimeout(this.saveTimer);
+            }
 
             // Validate fields and only let one field save at once
             if (field === 'name' && (this.nameError || this.isEmailSaving || this.isPhoneSaving || this.isFrequencySaving || this.isGroupSaving || this.formName === this.originalFormName)) return;
@@ -561,29 +564,55 @@ export default {
             if (field === 'phone') { this.isPhoneEdit = true; this.isPhoneSaving = true; }
             if (field === 'frequency') { this.isFrequencyEdit = true; this.isFrequencySaving = true; }
 
-            // Simulate success
-            setTimeout(() => {
-                if (field === 'name') { this.isNameSaving = false; }
-                if (field === 'email') { this.isEmailSaving = false; }
-                if (field === 'phone') { this.isPhoneSaving = false; }
-                if (field === 'frequency') { this.isFrequencySaving = false; }
+            // Set the new international number data field
+            this.formPhoneNationalNumber = PhoneNumberProvider.getInternationalPhoneNumber(this.formPhone, this.formCountryCode);
 
-                //this.isSaveSuccess = true;
-                this.isSaveError = true;
+            // Construct the update data
+            let data = null;
+            data = this.formName ? { name: this.formName } : null;
+            data = this.formEmail ? { email: this.formEmail } : null;
+            data = this.formFrequency ? { frequency: this.formFrequency } : null;
+            data = this.formPhone ? { dialCode: this.formCountryDialCode, phone: this.formPhone, countryCode: this.formCountryCode, nationalNumber: this.formPhoneNationalNumber } : null;
 
-                // TODO: Trim length of fields
-                
-                // Update fields to saved values
-                if (this.isSaveSuccess) {
-                    this.originalFormName = this.formName;
-                    this.originalFormEmail = this.formEmail;
-                    this.originalFormPhone = this.formPhone,
-                    this.originalFormCountryCode = this.formCountryCode;
-                    this.originalFormCountryDialCode = this.formCountryDialCode;
-                    this.originalFormPhoneNationalNumber = this.formPhoneNationalNumber;
-                    this.originalFormFrequency = this.formFrequency;
+            // Save the data through the API
+            PersonAPIService.update(this.userId, data)
+            .then( (response) => {
+                if (!response || !response.message) {
+                    throw new NoResponseAPIError();
                 }
 
+                // Make sure our expected fields are in the response
+                if (!response.person) {
+                    throw 'There was a problem updating your data, please try again later';
+                }
+
+                // Updated contact will be available in our Vuex store
+
+                // For now we update fields manually
+                this.originalFormName = response.person.name;
+                this.originalFormEmail = response.person.email;
+                this.originalFormPhone = response.person.phone;
+                this.originalFormCountryCode = response.person.countryCode;
+                this.originalFormCountryDialCode = response.person.dialCode;
+                this.originalFormPhoneNationalNumber = response.person.nationalNumber;
+                this.originalFormFrequency = response.person.frequency;
+
+                // Reset the form fields to new values
+                this.resetForm();
+
+                // Reset error flags
+                this.isSaveSuccess = true;
+                
+                // Reset any save states
+                this.isNameSaving = false;
+                this.isEmailSaving = false;
+                this.isPhoneSaving = false;
+                this.isFrequencySaving = false;
+            })
+            .catch( (error) => {
+                // Show error message
+                this.isSaveError = true;
+            }).finally(() => {
                 // Flash background color based on save result
                 this.saveTimer = setTimeout(() => {
                     if (field === 'name') { this.isNameEdit = false; }
@@ -592,12 +621,16 @@ export default {
                     if (field === 'frequency') { this.isFrequencyEdit = false; }
                     this.isSaveError = false;
                     this.isSaveSuccess = false;
-                }, this.saveInterval);
 
-            }, 1000);
+                    // Clear submit state
+                    this.isSaveSuccess = false;
+                    this.isSaveError = false;
+
+                }, this.saveInterval);
+            });
         },
 
-        onTapRemoveGroup(groupId) {
+        async onTapRemoveGroup(groupId) {
             const group = this.groupsList.find((g) => g.groupId === groupId);
             return Dialogs.confirm('Really remove this contact from ' + group.groupName + '?')
                 .then((result) => {
@@ -610,17 +643,25 @@ export default {
                         this.isGroupRemove = true;
                         this.groupIdSaving = groupId;
 
-                        // Simulate success
-                        setTimeout(() => {
-                            this.isGroupSaving = false;
-
-                            //this.isSaveSuccess = true;
-                            this.isSaveError = true;
-
-                            // Update fields to saved values
-                            if (this.isSaveSuccess) {
-                                this.groupsList = this.groupsList.filter(item => item.groupId !== this.groupId);
+                        // Save the data through the API
+                        return PersonAPIService.removeGroup(this.userId, groupId )
+                        .then( (response) => {
+                            if (!response || !response.message) {
+                                throw new NoResponseAPIError();
                             }
+
+                            // Updated contact will be available in our Vuex store - for now we update fields manually
+                            this.groupsList = this.groupsList.filter(item => item.groupId !== groupId);
+
+                            // Reset error flags
+                            this.isSaveSuccess = true;
+                        })
+                        .catch( (error) => {
+                            // Show error message
+                            this.isSaveError = true;
+                        }).finally(() => {
+                            // Reset any save states
+                            this.isGroupSaving = false;
 
                             // Flash background color based on save result
                             this.saveTimer = setTimeout(() => {
@@ -629,13 +670,10 @@ export default {
                                 this.isSaveError = false;
                                 this.isSaveSuccess = false;
                             }, this.saveInterval);
-
-                        }, 1000);
-                        
-                        return true;
+                        });
                     } else {
                         return false;
-                }
+                    }
             });
         },
 

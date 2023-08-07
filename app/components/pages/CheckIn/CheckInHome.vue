@@ -227,7 +227,6 @@ export default {
             // Fetch the checkin list from the server
             CheckInAPIService.list(this.userId)
             .then( (response) => {
-                // If the server was unreachable or timed out, the request is cancelled and goes into the then handler - trap this as a NoResponseAPIError
                 if (!response || !response.message) {
                     throw new NoResponseAPIError();
                 }
@@ -248,6 +247,11 @@ export default {
                 setTimeout(() => this.scrollToBottom(), 200);
             })
             .catch( (error) => {
+                // Show error message
+                this.isLoading = false;
+                this.connectError = false;
+                this.apiError = true;
+                
                 if (error instanceof NoResponseAPIError ) {
                     this.errorMessage = 'We couldn\'t contact the server. Please check your Internet connection or try again later.';
                     this.connectError = true;
@@ -264,11 +268,6 @@ export default {
                 } else {
                     this.errorMessage = 'There was a problem, please try again later';
                 }
-
-                // Show error message
-                this.isLoading = false;
-                this.connectError = false;
-                this.apiError = true;
             });
         },
 
