@@ -16,6 +16,20 @@
 import * as Https from '@nativescript-community/https';
 import * as fs from '@nativescript/core/file-system';
 
+// Import our custom errors
+import BadMethodAPIError from '@/errors/badmethodapierror';
+import BadRequestAPIError from '@/errors/badrequestapierror';
+import InternalServerAPIError from '@/errors/internalserverapierror';
+import NoResponseAPIError from '@/errors/noresponseapierror';
+import AuthenticationAPIError from '@/errors/authenticationapierror';
+/*import AlreadyActionedAPIError from '@/errors/alreadyactionedapierror';
+import InvalidTokenAPIError from '@/errors/invalidtokenapierror';
+import ExpiredTokenAPIError from '@/errors/expiredtokenapierror';
+import NotExistsAPIError from '@/errors/notexistsapierror';
+import CredentialsRevokedAPIError from '@/errors/credentialsrevokedapierror';
+*/
+import UnsupportedMediaAPIError from '@/errors/unsupportedmediaapierror';
+
 // Create new global instance of the xml-http request object
 let sslPinningEnabled = false;
 
@@ -27,6 +41,15 @@ function createRequest(url, options) {
   return Https.createRequest({
     url: baseUrl(url),
     method: 'GET',
+    timeout: 10,
+    ...options
+  });
+}
+
+function createPostRequest(url, options) {
+  return Https.createRequest({
+    url: baseUrl(url),
+    method: 'POST',
     timeout: 10,
     ...options
   });
@@ -67,4 +90,24 @@ function disableSSLPinning() {
   sslPinningEnabled = false;
 }
 
-export { createRequest, getRequest, postRequest, enableSSLPinning, disableSSLPinning, sslPinningEnabled };
+function checkResponseErrorCodes(response) {
+  if (response && response.statusCode) {
+    // Request made and server responded
+    if (response.statusCode === 405 && response.content.reason === 'BAD_METHOD') {
+        throw new BadMethodAPIError(response, error);
+    } else if (response.statusCode === 415) {
+        throw new UnsupportedMediaAPIError(response, error);
+    } else if (response.statusCode === 400 && response.content.reason === 'BAD_REQUEST') {
+        throw new BadRequestAPIError(response, error);
+    } else if (response.statusCode === 403 && response.content.reason === 'AUTHENTICATION_ERROR') {
+        throw new AuthenticationAPIError(response, error);
+    } else if (response.statusCode === 500 && response.content.reason === 'INTERNAL_SERVER_ERROR') {
+        throw new InternalServerAPIError(response, error);
+    } else if (response.statusCode >= 300) {
+        // Some other non-success code
+        throw new Error(error);
+    }
+  }
+}
+
+export { createRequest, createPostRequest, getRequest, postRequest, enableSSLPinning, disableSSLPinning, sslPinningEnabled, checkResponseErrorCodes };

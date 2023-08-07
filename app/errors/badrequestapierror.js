@@ -10,18 +10,18 @@
  * 
  */
 
-const BadRequestAPIError = function BadRequestAPIError (response = null, request = null, cause = null) {
+const BadRequestAPIError = function BadRequestAPIError (response = null, cause = null) {
     // Ensure the name of this error is the same as the class name
     this.name = 'BadRequestAPIError';
     
     // Save the response data in the error
-    this.data = { response, request, cause };
+    this.data = { response, cause };
 
     // If there's an error message specified in our response data, set this error message
-    this.message = (response.data && response.data.error ? response.data.error : (response.data && response.data.message ? response.data.message : cause.message));
+    this.message = (response.content && response.content.error ? response.content.error : (response.content && response.content.message ? response.content.message : cause.message));
 
     // If there's a response reason specified in our response data, set this
-    this.reason = (response.data && response.data.reason ? response.data.reason : 'BAD_REQUEST');
+    this.reason = (response.content && response.content.reason ? response.content.reason : 'BAD_REQUEST');
 
     // Capture the stack trace
     this.stack = (new Error()).stack;
