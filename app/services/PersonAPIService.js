@@ -83,15 +83,17 @@ const removeGroup = async (userId, groupId) => {
     return Https.postRequest(endPoint, {
         body: {
             userId,
-            signature,
-            groupId
+            groupId,
+            signature
         }
     }).then((response) => {
         // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
         Https.checkResponseErrorCodes(response);
         
-        // Update the newly fetched check-in data store
+        // Extract JSON from the response
         const data = JSON.parse(response.content);
+
+        // Update the newly fetched check-in data store
         //store.dispatch('Person/REMOVE_GROUP', { groupId });          // TODO: remove this group from the user in the person store
         
         // Return the data returned from the API so UI can access it
@@ -99,8 +101,39 @@ const removeGroup = async (userId, groupId) => {
     });
 }
 
+const addUserToGroup = async (userId, userToAddId, groupId) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'person/addUserToGroup';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + userToAddId + groupId;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            userToAddId,
+            groupId,
+            signature
+        }
+    }).then((response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Extract JSON from the response
+        const data = JSON.parse(response.content);
+
+        // Remove the user from the local user groups store
+        //store.dispatch('Person/REMOVE_GROUP', { groupId });          // TODO: remove this user from the group in the person store
+        
+        // Return the data returned from the API so UI can access it
+        return data;
+    });
+}
 // Export each API endpoint
 export default {
     update,
     removeGroup,
+    addUserToGroup,
 };

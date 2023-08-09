@@ -40,6 +40,9 @@ export default {
         shareSubject: { type: String, default: null },
         rightIsDeleteButton: { type: Boolean, default: false },
         deleteText: { type: String, default: "Please confirm you wish to delete this item?" },
+
+        // Navigate in a frame?
+        frameId: { type: String, default: "default" },
     },
     
     data() {
@@ -118,11 +121,11 @@ export default {
         },
 
         backNavOptions() {
-            return { transition: { name: "slideRight", duration: 300, curve: "ease" } }
+            return { transition: { name: "slideRight", duration: 300, curve: "ease" }, frame: this.frameId, props: { frameId: this.frameId } }
         },
       
         navOptions() {
-            return { transition: { name: "slideLeft", duration: 300, curve: "ease" } }
+            return { transition: { name: "slideLeft", duration: 300, curve: "ease" }, frame: this.frameId, props: { frameId: this.frameId } }
         },
     },
 

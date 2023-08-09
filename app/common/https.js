@@ -94,20 +94,43 @@ function checkResponseErrorCodes(response) {
   if (response && response.statusCode) {
     // Request made and server responded
     if (response.statusCode === 405 && response.content.reason === 'BAD_METHOD') {
-        throw new BadMethodAPIError(response, error);
+        throw new BadMethodAPIError(response);
     } else if (response.statusCode === 415) {
-        throw new UnsupportedMediaAPIError(response, error);
+        throw new UnsupportedMediaAPIError(response);
     } else if (response.statusCode === 400 && response.content.reason === 'BAD_REQUEST') {
-        throw new BadRequestAPIError(response, error);
+        throw new BadRequestAPIError(response);
     } else if (response.statusCode === 403 && response.content.reason === 'AUTHENTICATION_ERROR') {
-        throw new AuthenticationAPIError(response, error);
+        throw new AuthenticationAPIError(response);
     } else if (response.statusCode === 500 && response.content.reason === 'INTERNAL_SERVER_ERROR') {
-        throw new InternalServerAPIError(response, error);
+        throw new InternalServerAPIError(response);
     } else if (response.statusCode >= 300) {
         // Some other non-success code
-        throw new Error(error);
+        throw new Error('Recieved http ' + response.statusCode);
     }
   }
 }
 
-export { createRequest, createPostRequest, getRequest, postRequest, enableSSLPinning, disableSSLPinning, sslPinningEnabled, checkResponseErrorCodes };
+function getResponseErrorMessage(error) {
+  let retData = { errorMessage: '', connectError: false };
+
+  if (error instanceof NoResponseAPIError ) {
+    retData.errorMessage = 'We couldn\'t contact the server. Please check your Internet connection or try again later.';
+    retData.connectError = true;
+  } else if (error instanceof UnsupportedMediaAPIError) {
+    retData.errorMessage = 'We encountered a server problem, please try again later';
+  } else if (error instanceof BadMethodAPIError) {
+    retData.errorMessage = 'We encountered a technical problem, please try again later';
+  } else if (error instanceof BadRequestAPIError) {
+    retData.errorMessage = 'We encountered a problem, please try again later';
+  } else if (error instanceof AuthenticationAPIError) {
+    retData.errorMessage = 'We encountered an authentication problem, please logout and try again';
+  } else if (error instanceof InternalServerAPIError) {
+    retData.errorMessage = 'We encountered a server problem, please try again later';
+  } else {
+    retData.errorMessage = 'There was a problem, please try again later';
+  }
+
+  return retData;
+}
+
+export { createRequest, createPostRequest, getRequest, postRequest, enableSSLPinning, disableSSLPinning, sslPinningEnabled, checkResponseErrorCodes, getResponseErrorMessage };

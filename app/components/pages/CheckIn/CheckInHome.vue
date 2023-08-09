@@ -62,12 +62,8 @@ import { mapGetters } from 'vuex';
 import CheckInAPIService from '@/services/CheckInAPIService';
 
 // Import our custom errors
-import BadMethodAPIError from '@/errors/badmethodapierror';
-import BadRequestAPIError from '@/errors/badrequestapierror';
-import InternalServerAPIError from '@/errors/internalserverapierror';
 import NoResponseAPIError from '@/errors/noresponseapierror';
-import AuthenticationAPIError from '@/errors/authenticationapierror';
-import UnsupportedMediaAPIError from '@/errors/unsupportedmediaapierror';
+import { getResponseErrorMessage } from '@/common/https';
 
 export default {
     components: {
@@ -252,22 +248,10 @@ export default {
                 this.connectError = false;
                 this.apiError = true;
                 
-                if (error instanceof NoResponseAPIError ) {
-                    this.errorMessage = 'We couldn\'t contact the server. Please check your Internet connection or try again later.';
-                    this.connectError = true;
-                } else if (error instanceof UnsupportedMediaAPIError) {
-                    this.errorMessage = 'We encountered a server problem, please try again later';
-                } else if (error instanceof BadMethodAPIError) {
-                    this.errorMessage = 'We encountered a technical problem, please try again later';
-                } else if (error instanceof BadRequestAPIError) {
-                    this.errorMessage = 'We encountered a problem, please try again later';
-                } else if (error instanceof AuthenticationAPIError) {
-                    this.errorMessage = 'We encountered an authentication problem, please logout and try again';
-                } else if (error instanceof InternalServerAPIError) {
-                    this.errorMessage = 'We encountered a server problem, please try again later';
-                } else {
-                    this.errorMessage = 'There was a problem, please try again later';
-                }
+                // Extract any error message/data from the error
+                const errorData = getResponseErrorMessage(error);
+                this.errorMessage = errorData.message;
+                this.connectError = errorData.connectError;
             });
         },
 

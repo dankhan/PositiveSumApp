@@ -26,11 +26,15 @@ import YourCheckIns from '~/components/pages/CheckIn/YourCheckIns';
 import AddPerson from '~/components/pages/Person/AddPerson';
 import ViewPerson from '~/components/pages/Person/ViewPerson';
 
+// Group Pages
+import AddGroup from '~/components/pages/Group/AddGroup';
+
 // Help Pages
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
 import SignUpHelp from '~/components/pages/Help/SignUp/SignUpHelp';
 import CheckInHelp from '~/components/pages/Help/CheckIn/CheckInHelp';
 import AddPersonHelp from '~/components/pages/Help/Person/addPersonHelp';
+import AddGroupHelp from '~/components/pages/Help/Group/addGroupHelp';
 
 // Setup the router links
 const router = {
@@ -60,12 +64,16 @@ const router = {
   // Person pages
   addPerson: AddPerson,
   viewPerson: ViewPerson,
+
+  // Group pages
+  addGroup: AddGroup,
   
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
   checkInHelp: CheckInHelp,
   addPersonHelp: AddPersonHelp,
+  addGroupHelp: AddGroupHelp,
 }
 
 export default router;

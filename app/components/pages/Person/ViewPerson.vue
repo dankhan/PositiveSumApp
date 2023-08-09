@@ -134,7 +134,7 @@ import { shareText } from '@nativescript/social-share'
 
 // Modal pages
 import CountrySelect from '~/components/pages/Person/CountrySelect';
-import GroupSelect from '~/components/pages/Person/GroupSelect';
+import GroupSelect from '~/components/pages/Group/GroupSelect';
 
 // Use the telephony plugin to get country code details from the phone sim
 import * as PhoneNumberProvider from '~/common/phonenumber';
@@ -143,12 +143,7 @@ import * as PhoneNumberProvider from '~/common/phonenumber';
 import PersonAPIService from '@/services/PersonAPIService';
 
 // Import our custom errors
-import BadMethodAPIError from '@/errors/badmethodapierror';
-import BadRequestAPIError from '@/errors/badrequestapierror';
-import InternalServerAPIError from '@/errors/internalserverapierror';
 import NoResponseAPIError from '@/errors/noresponseapierror';
-import AuthenticationAPIError from '@/errors/authenticationapierror';
-import UnsupportedMediaAPIError from '@/errors/unsupportedmediaapierror';
 
 export default {
     components: {
@@ -679,7 +674,7 @@ export default {
 
         onTapAddToGroup() {
             // Show the choose group modal and update the groupList on close
-            this.$showModal(GroupSelect, { fullscreen: true })
+            this.$showModal(GroupSelect, { fullscreen: true, props: { userToAdd: this.item } })
             .then((result) => {
                 // Update the group list
                 this.groupsList = result;
