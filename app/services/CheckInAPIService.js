@@ -50,7 +50,42 @@ const list = async (userId) => {
     })
 }
 
+/*
+ * function yourCheckIns ()
+ *
+ * API call to get a list of your check-ins for a specific user
+ *
+ */
+const yourCheckIns = async (userId) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'checkin/yourCheckIns';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            signature,
+        }
+    }).then((response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Update the newly fetched check-in data store
+        const data = JSON.parse(response.content);
+        const yourCheckIns = data.yourCheckIns;
+        store.dispatch('CheckIn/SET_YOURCHECKINS', { yourCheckIns });
+
+        // Return the data returned from the API so UI can access it
+        return data;
+    })
+}
+
 // Export each API endpoint
 export default {
     list,
+    yourCheckIns,
 };

@@ -33,8 +33,10 @@ import AddGroup from '~/components/pages/Group/AddGroup';
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
 import SignUpHelp from '~/components/pages/Help/SignUp/SignUpHelp';
 import CheckInHelp from '~/components/pages/Help/CheckIn/CheckInHelp';
+import YourCheckInsHelp from '~/components/pages/Help/CheckIn/YourCheckInsHelp';
 import AddPersonHelp from '~/components/pages/Help/Person/addPersonHelp';
 import AddGroupHelp from '~/components/pages/Help/Group/addGroupHelp';
+
 
 // Setup the router links
 const router = {
@@ -72,6 +74,7 @@ const router = {
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
   checkInHelp: CheckInHelp,
+  yourCheckInsHelp: YourCheckInsHelp,
   addPersonHelp: AddPersonHelp,
   addGroupHelp: AddGroupHelp,
 }
