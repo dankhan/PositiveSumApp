@@ -75,7 +75,7 @@ export default {
 
             // Timers and intervals
             longPressActionTimeMs: 0.75 * 1000,
-            tapDuration: 150,
+            tapDuration: 200,
             errorInterval: 1 * 1000,
             successInterval: 1 * 1000,
             

@@ -44,6 +44,8 @@ $font-size-form-input: 18;
 
 $font-size-small: 14;
 
+$font-size-emoji: 30;
+$font-size-emoji-large: 60;
 
 
 /* line-heights */
@@ -91,6 +93,13 @@ $color-form-error: #e85d54;
 // Sliders
 $color-slider: #ffffff;
 $color-slider-background: #85BCCB; 
+
+
+// Emoji board
+$color-emojiboard-background: #4D4F52;
+$color-emojiboard-button: #717275;
+$color-emojiboard-button-selected: #DBDCDC;
+$color-emojiboard-button-overlay: #ffffffcc;
 
 /*
  * Buttons

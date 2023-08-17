@@ -21,6 +21,7 @@ import CheckInHome from '~/components/pages/CheckIn/CheckInHome';
 import CheckInReplyUser from '~/components/pages/CheckIn/CheckInReplyUser';
 import CheckInGroup from '~/components/pages/CheckIn/CheckInGroup';
 import YourCheckIns from '~/components/pages/CheckIn/YourCheckIns';
+import CheckIn from '~/components/pages/CheckIn/CheckIn';
 
 // Person Pages
 import AddPerson from '~/components/pages/Person/AddPerson';
@@ -32,11 +33,11 @@ import AddGroup from '~/components/pages/Group/AddGroup';
 // Help Pages
 import ForgotPasswordHelp from '~/components/pages/Help/Login/ForgotPasswordHelp';
 import SignUpHelp from '~/components/pages/Help/SignUp/SignUpHelp';
+import CheckInHomeHelp from '~/components/pages/Help/CheckIn/CheckInHomeHelp';
 import CheckInHelp from '~/components/pages/Help/CheckIn/CheckInHelp';
 import YourCheckInsHelp from '~/components/pages/Help/CheckIn/YourCheckInsHelp';
 import AddPersonHelp from '~/components/pages/Help/Person/addPersonHelp';
 import AddGroupHelp from '~/components/pages/Help/Group/addGroupHelp';
-
 
 // Setup the router links
 const router = {
@@ -62,6 +63,7 @@ const router = {
   checkInReplyUser: CheckInReplyUser,
   checkInGroup: CheckInGroup,
   yourCheckIns: YourCheckIns,
+  checkIn: CheckIn,
 
   // Person pages
   addPerson: AddPerson,
@@ -73,6 +75,7 @@ const router = {
   // Help pages
   forgotPasswordHelp: ForgotPasswordHelp,
   signUpHelp: SignUpHelp,
+  checkInHomeHelp: CheckInHomeHelp,
   checkInHelp: CheckInHelp,
   yourCheckInsHelp: YourCheckInsHelp,
   addPersonHelp: AddPersonHelp,

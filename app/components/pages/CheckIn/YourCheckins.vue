@@ -65,11 +65,11 @@ export default {
 
     computed: {
         backNavOptions() {
-            return { transition: { name: "slideRight", duration: 300, curve: "ease" } }
+            return { transition: { name: "slideRight", duration: 300, curve: "ease" }}
         },
         
         navOptions() {
-            return { transition: { name: "slideLeft", duration: 300, curve: "ease" } }
+            return { transition: { name: "slideLeft", duration: 300, curve: "ease" }}
         },
 
         showMemo() {
@@ -132,7 +132,12 @@ export default {
         },
 
         onTapHelp() {
-            this.$goto('checkInHelp', this.navOptions);
+            this.$goto('checkInHomeHelp', this.navOptions);
+        },
+
+        onTapItem(item) {
+            const navOptions = {...this.navOptions, props: { item }}
+            this.$goto('checkIn', navOptions);
         },
 
         async onTapAddPerson() {
@@ -203,10 +208,6 @@ export default {
                 const cell = args.ios;
                 cell.selectionStyle = UITableViewCellSelectionStyle.UITableViewCellSelectionStyleNone;
             }
-        },
-
-        onTapItem(item) {
-            console.log(item);
         },
     },
 }

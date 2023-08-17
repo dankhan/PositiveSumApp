@@ -84,8 +84,45 @@ const yourCheckIns = async (userId) => {
     })
 }
 
+/*
+ * function reply ()
+ *
+ * API call to reply to a checkIn
+ *
+ */
+const reply = async (userId, reply, checkInId) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'checkin/reply';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + checkInId;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            signature,
+            reply,
+            checkInId,
+        }
+    }).then((response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Update the check-in with the new reply in the check-in store
+        const data = JSON.parse(response.content);
+        const checkIn = data.checkin;
+        store.dispatch('CheckIn/UPDATE_CHECKIN', { checkIn });
+
+        // Return the data returned from the API so UI can access it
+        return data;
+    })
+}
+
 // Export each API endpoint
 export default {
     list,
     yourCheckIns,
+    reply,
 };

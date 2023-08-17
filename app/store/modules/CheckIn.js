@@ -36,6 +36,11 @@ const mutations = {
         state.checkin.yourCheckIns = yourCheckIns;
     },
 
+    UPDATE_CHECKIN: (state, checkIn) => {
+        //state.checkin.yourCheckIns = checkIn;
+        // TODO: Update the local check-in list for this user
+    },
+
     RESET: state => {
         // Reset the state
         Object.assign(state, getDefaultState());
@@ -83,6 +88,15 @@ const actions = {
      */
     SET_YOURCHECKINS: ({ commit }, { yourCheckIns }) => {
         commit('SET_YOURCHECKINS', yourCheckIns);
+    },
+
+    /*
+     * function UPDATE_CHECKIN()
+     *
+     * Update the details about a single checkIn for a user
+     */
+    UPDATE_CHECKIN: ({ commit }, { checkIn }) => {
+        commit('UPDATE_CHECKIN', checkIn);
     },
 
     refreshList: ({ commit }, { userId }) => {

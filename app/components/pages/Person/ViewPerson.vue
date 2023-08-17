@@ -13,29 +13,8 @@
                         <Label class="heading" text="Dan Khan" marginBottom="0"></Label>
 
                         <!-- Buttons -->
-                        <GridLayout columns="auto,*,10,auto,*,10,auto,*,10,30" marginBottom="0">
-                            <Button col="1" :class="{ 'button-primary': originalFormEmail.length, 'button-primary-disabled': !originalFormEmail.length }" backgroundImage="res://icons_button_email" backgroundRepeat="no-repeat" backgroundPosition="10% 50%" @tap="onTapAction('email')">
-                                <FormattedString>
-                                    <Span text="    Email" class="button-label"></Span>
-                                </FormattedString>
-                            </Button>
-                            
-                            <Button col="4" :class="{ 'button-primary': originalFormPhone.length, 'button-primary-disabled': !originalFormPhone.length }" backgroundImage="res://icons_button_phone" backgroundRepeat="no-repeat" backgroundPosition="15% 50%" @tap="onTapAction('phone')">
-                                <FormattedString>
-                                    <Span text="    Call" class="button-label"></Span>
-                                </FormattedString>
-                            </Button>
-                            
-                            <Button col="7" :class="{ 'button-primary': originalFormPhone.length, 'button-primary-disabled': !originalFormPhone.length }" backgroundImage="res://icons_button_msg" backgroundRepeat="no-repeat" backgroundPosition="15% 55%" @tap="onTapAction('msg')">
-                                <FormattedString>
-                                    <Span text="    Msg" class="button-label"></Span>
-                                </FormattedString>
-                            </Button>
-
-                            <!-- Share Button -->
-                            <Image col="9" width="26" height="26" horizontalAlignment="right" stretch="aspectFit" src="res://icons_share" marginLeft="10" @tap="onTapShare" />
-                        </GridLayout>
-
+                        <ContactButtons :name='originalFormName' :email="originalFormEmail" :phone="originalFormPhone" :countryDialCode='originalFormCountryDialCode' :nationalNumber="formPhoneNationalNumber" :hasShare="true"></ContactButtons>
+                        
                         <!-- Last Check-in Date -->
                         <Label class="lastcheckin" text="Last check-in 5 days ago" marginTop="0" marginBottom="40"></Label>
                     
@@ -127,10 +106,8 @@
 <script>
 // In-page components
 import TopNav from '~/components/widgets/TopNav';
-import { Dialogs, utils } from "@nativescript/core";
-
-// Use the social-share plugin to access share button functionality
-import { shareText } from '@nativescript/social-share'
+import ContactButtons from '~/components/widgets/ContactButtons';
+import { Dialogs } from "@nativescript/core";
 
 // Modal pages
 import CountrySelect from '~/components/pages/Person/CountrySelect';
@@ -148,6 +125,7 @@ import NoResponseAPIError from '@/errors/noresponseapierror';
 export default {
     components: {
         TopNav,
+        ContactButtons,
     },
 
     // The person item is passed as item
@@ -353,133 +331,6 @@ export default {
         onPageLoaded(event) {
             // Set the Status bar style (light or dark based on the *page* content)
             event.object.page.statusBarStyle = 'dark';
-        },
-
-        // @see https://github.com/ludwiktrammer/nativescript-open-app - bringing in here since that version has outdated includes
-        openApp(appID, storeFallback, appleStoreId, action='', data='') {
-            if (storeFallback === void 0) { storeFallback = true; }
-            if (global.isIOS) {
-                var sharedApplication = UIApplication.sharedApplication;
-                var url = NSURL.URLWithString(appID.trim());
-                if (sharedApplication.canOpenURL(url)) {
-                    // open app
-                    sharedApplication.openURL(url);
-                    return true;
-                }
-                else if (storeFallback && appleStoreId) {
-                    // can't open app - open store
-                    url = NSURL.URLWithString("itms-apps://itunes.apple.com/app/id" + appleStoreId);
-                    if (sharedApplication.canOpenURL(url)) {
-                        sharedApplication.openURL(url);
-                    }
-                    else {
-                        // can't open store - open the website
-                        url = NSURL.URLWithString("https://itunes.apple.com/app/id" + appleStoreId);
-                        sharedApplication.openURL(url);
-                    }
-                }
-                return false;
-            } else {
-                // Android
-                var context = utils.ad.getApplicationContext();
-                var Intent = android.content.Intent;
-                
-                // Use action passed in as intent or get the default
-                if (action) {
-                    var intent = new Intent(action, data);
-                } else {
-                    var intent = context.getPackageManager().getLaunchIntentForPackage(appID);
-                }
-                
-                if (intent) {
-                    // Set any custom data
-                    if (data.length) {
-                        intent.setData(android.net.Uri.parse(data));
-                    }
-
-                    // Open app
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                    return true;
-                }
-                else if (storeFallback) {
-                    // Can't open app - open store
-                    intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(android.net.Uri.parse("https://play.google.com/store/apps/details?id=" + appID));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                }
-                return false;
-            }
-        },
-
-        onTapAction(type) {
-            // Opening apps differs on android and iOS
-            let url = '';
-            let scheme = '';
-            let appUrl = '';
-            let action = '';
-            let data = '';
-
-            if (global.isIOS) {
-                
-                if (type === 'email') {
-                    url = this.originalFormEmail.length ? this.originalFormEmail : '';
-                    scheme = 'mailto';
-                }
-
-                if (type === 'phone') {
-                    url = this.originalFormCountryDialCode.length && this.originalFormPhone.length ? this.originalFormCountryDialCode + this.originalFormPhone : '';
-                    scheme = 'tel';
-                }
-
-                if (type === 'msg') {
-                    url = this.originalFormCountryDialCode.length && this.originalFormPhone.length ? this.originalFormCountryDialCode + this.originalFormPhone : '';
-                    scheme = 'sms';
-                }
-
-                if (url.length && scheme.length) {
-                    const appUrl = scheme + ':' + url;
-                }
-            } else {
-                // Use android application Ids
-                const emailAppId = 'com.google.android.gm';                 // gmail
-                const messagesAppId = 'com.google.android.apps.messaging';
-                const phoneAppId = 'com.google.android.dialer';
-
-                if (type === 'email') {
-                    url = emailAppId;
-                    action = android.content.Intent.ACTION_SENDTO;
-                    data = this.originalFormEmail.length ? 'mailto:' + this.originalFormEmail : '';
-                }
-
-                if (type === 'phone') {
-                    url = phoneAppId;
-                    action = android.content.Intent.ACTION_DIAL;
-                    data = this.originalFormPhone.length ? 'tel:+' + this.originalFormCountryDialCode + this.originalFormPhone : '';
-                }
-
-                if (type === 'msg') {
-                    url = messagesAppId;
-                    action = android.content.Intent.ACTION_VIEW;
-                    scheme = 'sms';
-                    data = this.originalFormPhone.length ? 'tel:+' + this.originalFormCountryDialCode + this.originalFormPhone : '';
-                }
-            }
-
-            // open the app
-            if (url.length) {
-                this.openApp(appUrl, true, null, action, data);
-            }
-        },
-        
-        onTapShare() {
-            const share = {
-                "name": this.formName,
-                "email": this.formEmail,
-                "phone": this.formPhoneNationalNumber,
-            };
-            shareText(JSON.stringify(share), this.formName);
         },
 
         onEdit() {

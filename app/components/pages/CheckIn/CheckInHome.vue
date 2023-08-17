@@ -2,7 +2,7 @@
   <Page actionBarHidden="true" @loaded="onPageLoaded">
     <DockLayout>
         <!-- Top Nav -->
-        <TopNav ref="topnav" dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHelp" />
+        <TopNav ref="topnav" dock="top" title="Check-In" :leftIsHomeButton="true" :rightIsHelpButton="true" rightRoute="checkInHomeHelp" />
 
         <!-- Bottom container -->
         <GridLayout ref="grid" dock="bottom" rows="auto,auto" columns="*" :verticalAlignment="isLoading ? 'middle' : 'bottom'" marginLeft="20" marginRight="20" marginBottom="10">
@@ -190,7 +190,7 @@ export default {
         },
 
         onTapHelp() {
-            this.$goto('checkInHelp', this.navOptions);
+            this.$goto('checkInHomeHelp', this.navOptions);
         },
 
         async onTapAddPerson() {
