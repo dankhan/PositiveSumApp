@@ -25,24 +25,28 @@ Vue.prototype.$router = router;
 Vue.prototype.$store = store;
 Vue.prototype.$goto = function (to, options) {
   
-  // Setup our default nav options
-  const defaultOptions = { 
-    transition: { 
-      name: "slide",
-      duration: 300,
-      curve: "ease"
-    },
-  };
+	// Setup our default nav options
+	const defaultOptions = { 
+		transition: { 
+			name: "slide",
+			duration: 300,
+			curve: "ease"
+		},
+	};
 
-  // Overwrite default options with those passed in
-  const mergedOptions = {...defaultOptions, ...options}
-  this.$navigateTo(this.$router[to], mergedOptions);
+	// Overwrite default options with those passed in
+	const mergedOptions = {...defaultOptions, ...options}
+	this.$navigateTo(this.$router[to], mergedOptions);
 
-  // Incase the caller wants to setup event handlers on the vue object, return the view object
-  return this.$router[to];
+	// Incase the caller wants to setup event handlers on the vue object, return the view object
+	return this.$router[to];
 }
 
 // Setup the Vue Instance, passing in the App Component as start point
 new Vue({
-  store, render: (h) => h('frame', [h(App)]),
+	store,
+	render: (h) => h('frame', [h(App)]),
+	beforeCreate() {
+		this.$store.dispatch('init');
+	},
 }).$start();

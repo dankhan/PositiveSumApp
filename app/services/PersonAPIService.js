@@ -17,6 +17,43 @@ import * as Https from '@/common/https';
 import { MD5 } from 'crypto-es/lib/md5.js';
 
 /*
+ * function get ()
+ *
+ * API call to get update a person (contact) for a user
+ *
+ */
+const get = async (userId, personId, updateStore=true ) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'person/get';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + personId;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            personId,
+            signature,
+        }
+    }).then(async (response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Add/update the person to the store (only do if this isn't triggered from the store)
+        const data = JSON.parse(response.content);
+        const person = data.person;
+        if (updateStore) {
+            await store.dispatch('Contact/SET_CONTACT', person);
+        }
+
+        // Return the data returned from the API so UI can access it
+        return data;
+    });
+}
+
+/*
  * function update ()
  *
  * API call to get update a person (contact) for a user
@@ -66,7 +103,7 @@ const update = async (userId, { name, email, dialCode, phone, countryCode, natio
 }
 
 /*
- * function update ()
+ * function removeGroup ()
  *
  * API call to remove a person from a group for a user
  *
@@ -133,6 +170,7 @@ const addUserToGroup = async (userId, userToAddId, groupId) => {
 }
 // Export each API endpoint
 export default {
+    get,
     update,
     removeGroup,
     addUserToGroup,

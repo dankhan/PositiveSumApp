@@ -16,6 +16,7 @@ import Vuex from 'vuex';
 
 // Import our store sub-modules
 import CheckIn from '@/store/modules/CheckIn';
+import Contacts from '@/store/modules/Contacts';
 import LoginFrame from '@/store/modules/LoginFrame';
 import SignUpFrame from '@/store/modules/SignUpFrame';
 
@@ -27,16 +28,17 @@ const store = new Vuex.Store({
     strict: true,
     modules: {
       CheckIn,
+      Contacts,
       LoginFrame,
       SignUpFrame,
     },
 
-    /*actions: {
-    initialise({ dispatch }) {
-      // Run any module init functions
-      // dispatch('Backgrounds/initialise');
+    actions: {
+        async init({ dispatch }) {
+            // Run any module init functions
+            await dispatch('Contacts/INIT');
+        },
     },
-},*/
 });
 
 export default store;
