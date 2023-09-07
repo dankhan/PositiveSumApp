@@ -26,7 +26,32 @@ const dbFileName = 'localstorage_contacts.db';
 // Setup the default state
 const getDefaultState = () => {
     return {
-        // contacts is an array of person objects, indexed by a userId property on the object
+        // contacts is an array of person objects, indexed by a personId property on the object (so we can access using array-like accessors)
+        /*
+        {
+            "contacts": {
+                "42": {
+                    "personId": 42
+                    "name": "John Appleseed",
+                    "email": "John-Appleseed@mac.com",
+                    "dialCode": "+1",
+                    "phone": "8885555512",
+                    "countryCode": "us",
+                    "frequency": 2,
+                    "due": {
+                        "checkIn": 1694042853,          // timestamp                    
+                    },
+                    last: {
+                        "checkIn": {
+                            checkInId: 1,
+                            time:  1694042853           // timestamp,
+                        }
+                    }
+                },
+                "43" : { ... },
+                etc.
+            }
+        */
         contacts: {},
     };
 };
@@ -35,42 +60,127 @@ const getDefaultState = () => {
 const mutations = {
     SET_ALL_CONTACTS: (state, contacts) => {
         Object.assign(state, contacts);
+
+        // Persist the groups storage
+        persistStore(state);
     },
 
-    SET_CONTACT: async (state, contact) => {
+    SET_CONTACT: (state, person) => {
         // Create the key if it doesn't exist
-        if (!Object.prototype.hasOwnProperty.call(state.contacts, Number(contact.personId))) {
-            Vue.set(state.contacts, Number(contact.personId), {});
+        if (!Object.prototype.hasOwnProperty.call(state.contacts, Number(person.personId))) {
+            Vue.set(state.contacts, Number(person.personId), {});
         }
 
         // Save the details
-        Vue.set(state.contacts, Number(contact.personId), contact);
+        Vue.set(state.contacts, Number(person.personId), person);
 
         // Persist the contacts storage
-        await persistStore(state);
+        persistStore(state);
     },
 
-    RESET: async state => {
+    UPDATE_CHECKIN: (state, { due, checkIn }) => {
+        const personId = Number(due.personId);
+
+        // Check the person exists
+        if (Object.prototype.hasOwnProperty.call(state.contacts, personId)) {
+            // Create the "last" check-in key if it doesn't exist
+            if (!Object.prototype.hasOwnProperty.call(state.contacts[personId], "last")) {
+                Vue.set(state.contacts[personId], "last", { "checkIn": {}});
+            } else if (!Object.prototype.hasOwnProperty.call(state.contacts[personId].last, "checkIn")) {
+                Vue.set(state.contacts[personId].last, "checkIn", {});
+            }
+
+            // We update the last check-in id and time props
+            Vue.set(state.contacts[personId].last, "checkIn", { checkInId: checkIn.checkInId, time: checkIn.time } );
+
+            // Create the "due" check-in key if it doesn't exist
+            if (!Object.prototype.hasOwnProperty.call(state.contacts[personId], "due")) {
+                Vue.set(state.contacts[personId], "due", {});
+            }
+
+            // We update the new due date based on the time of this last check-in plus the frequency field
+            Vue.set(state.contacts[personId], "due", { checkIn: due.time } );
+
+            // Persist the contacts storage
+            persistStore(state);
+        }
+    },
+
+    RESET: state => {
         // Reset the state
         Object.assign(state, getDefaultState());
 
         // Persist the contacts storage
-        await persistStore(state);
+        persistStore(state);
     },
 };
 
 // Setup our getters
 const getters = {
+    // Get all contacts
     get: state => {
         return state.contacts;
     },
 
-    contact: state => {
+    // Lookup a person by personId
+    person: state => {
         return (personId) => {
             if (personId && Object.prototype.hasOwnProperty.call(state.contacts, Number(personId))) {
                 return state.contacts[personId];
             } else {
                 return null;
+            }
+        }
+    },
+
+    // Lookup the persons by an array of personIds, or return all if empty
+    persons: state => {
+        return (personIdArr) => {
+            return !personIdArr || !personIdArr.length ? state.contacts : Object.values(state.contacts).filter(p => personIdArr.includes(p.personId));
+        }
+    },
+    
+    // Lookup a person's name by personId
+    personName: state => {
+        return (personId) => {
+            if (personId && Object.prototype.hasOwnProperty.call(state.contacts, Number(personId))) {
+                return state.contacts[personId].name ? state.contacts[personId].name : '';
+            } else {
+                return null;
+            }
+        }
+    },
+
+    // Check if a person exists by email, and phone number and return their name if so
+    exists: state => {
+        return (email, dialCode, phone, excludePersonId=null) => {
+            // Look up if any of these items are already in the contact store - return the name of the person it is currently assigned to
+            if (state && state.contacts) {
+                let found = false;
+                Object.keys(state.contacts).forEach((x) => {
+                    return found = state.contacts[x].email.toLowerCase() === email.toLowerCase() || (state.contacts[x].dialCode === dialCode && state.contacts[x].phone === phone) ? state.contacts[x] : found;
+                });
+
+                // Exclude a personId (e.g. ourself) from the search
+                if (found && excludePersonId && found.personId === excludePersonId) return false;
+
+                // We return the name field if found so UI can say who it belongs to
+                return found ? found.name : false;
+            } else {
+                return false;
+            }
+        }
+    },
+
+    // Check the last check-in date for a person
+    lastCheckIn: state => {
+        return (personId) => {
+            if (personId && Object.prototype.hasOwnProperty.call(state.contacts, Number(personId)) && 
+                Object.prototype.hasOwnProperty.call(state.contacts[Number(personId)]["last"]["checkIn"]["time"])
+            ) {
+               return Object.prototype.hasOwnProperty.call(state.contacts[Number(personId)]["last"]["checkIn"]["time"]);
+            } else {
+                return 0;
             }
         }
     },
@@ -111,8 +221,17 @@ const actions = {
      *
      * Add a new contact
      */
-    SET_CONTACT: ({ commit }, { contact }) => {
-        commit('SET_CONTACT', contact);
+    SET_CONTACT: ({ commit }, { person }) => {
+        commit('SET_CONTACT', person);
+    },
+
+    /*
+     * function UpdateCheckIn()
+     *
+     * Update the contact's last check id and time
+     */
+    UPDATE_CHECKIN: ({ commit }, data) => {
+        commit('UPDATE_CHECKIN', data);
     },
 
     /*
@@ -162,6 +281,9 @@ const actions = {
                     .then(async (res)=> {
                         // We try to parse the file as JSON
                         data = JSON.parse(res);
+                        if (process.env.DEBUG_STORE) {
+                            console.info('Read contacts info from file');
+                        }                        
 
                         // Set the contacts list in scope
                         await commit('SET_ALL_CONTACTS', data);

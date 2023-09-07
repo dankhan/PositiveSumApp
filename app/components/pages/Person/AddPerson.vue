@@ -49,6 +49,9 @@
 
                             <!-- Server submit error message -->
                             <label v-if="isSubmitError" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center">There was a problem saving these details, please try again</label>
+
+                            <!-- Person exists error message -->
+                            <label v-if="existsError !== false" class="error" textWrap="true" marginTop="5" marginBottom="5" horizontalAlignment="center" :text="`This email or phone number is already assigned to '${existsError}'`"></label>
                             
                             <!-- Add Person Button -->
                             <Button marginTop="30" class="button-primary" text="Add Person" @tap="onTapAddPerson"></Button>
@@ -69,12 +72,22 @@ import SearchField from '~/components/widgets/SearchField';
 import CountrySelect from '~/components/pages/Person/CountrySelect';
 import ContactSelect from '~/components/pages/Person/ContactSelect';
 
+// API Services
+import PersonAPIService from '@/services/PersonAPIService';
+
+// Import our custom errors
+import NoResponseAPIError from '@/errors/noresponseapierror';
+import { getResponseErrorMessage } from '@/common/https';
+
 // Use the telephony plugin to get country code details from the phone sim
 import * as PhoneNumberProvider from '~/common/phonenumber';
 const Sim = require('nativescript-telephony');
 
 // Use the nativescript-community/perms to check and request device permissions
 import { request as requestPermission, canOpenSettings, openSettings } from '@nativescript-community/perms';
+
+// Other includes
+import { mapGetters } from 'vuex';
 
 export default {
     components: {
@@ -96,13 +109,14 @@ export default {
             // Phone number validation related
             formCountryCode: undefined,     // ISO 2 char country code (e.g. US)
             formCountryDialCode: undefined, // country dial code (e.g. 1)
-            flagImage: undefined,       // base64 encoded flag image currently displayed in form
-            defaultCountryCode: 'us',
-            defaultCountryDialCode: '+1',
+            flagImage: undefined,           // base64 encoded flag image currently displayed in form
+            defaultCountryCode: 'nz',
+            defaultCountryDialCode: '+64',
 
             // Submit related
             isSubmit: false,
             isSubmitError: false,
+            existsError: false,
             errorTimer: null,
 
             // Permissions and contact chooser related
@@ -131,7 +145,7 @@ export default {
         nameError() {
             return ((this.formName ? this.formName.trim() : "") === "") && this.isSubmit;
         },
-        
+
         emailError() {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;            // Note simple anystring@anystring.anystring and checking no double @
             return (this.formEmail.trim() === "" || !re.test(this.formEmail)) && this.isSubmit;
@@ -171,7 +185,12 @@ export default {
             return this.canOpenSettings
                 ? "You need to enable permission to access your contacts - tap to open system settings"
                 : "You need to enable permission to access your contacts - change this option in your system settings";
-        }
+        },
+
+        // Map our Vuex getters
+        ...mapGetters({
+            personExists: 'Contacts/exists',
+        }),
     },
 
     mounted() {
@@ -235,42 +254,92 @@ export default {
                 });
         },
 
-        onTapAddPerson() {
+        checkPersonExists() {
+            // Trim off any leading zero on phone number
+            const phoneNumber = (this.formPhone === undefined) ? '' : this.formPhone.replace(/^(\(0\)|0)/,'');
+            
+            // Check if the person already exists (returns person's name if it does so we can use in error message)
+            return this.personExists(this.formEmail, this.formCountryDialCode, phoneNumber);
+        },
+        
+        async onTapAddPerson() {
             // Clear any previous error message
             if (this.errorTimer) {
                 clearTimeout(this.errorTimer);
+                this.isSubmitError = false;
+                this.existsError = false;
             }
 
             // Set state to processing a submit
             this.isSubmit = true;
 
+            // Check if these details exist already (do here instead of computed to avoid expensive calc on form field change)
+            this.existsError = this.checkPersonExists();
+
             // Validate form fields
-            if (!this.nameError && !this.emailError && !this.phoneNumberError) {
+            if (!this.nameError && !this.emailError && !this.phoneNumberError && this.existsError === false) {
                 // Valid
-            
+        
                 try {
-                    // TODO: Add this person for this user on the server
+                    // Trim off any leading zero on phone number
+                    const phoneNumber = (this.formPhone === undefined) ? '' : this.formPhone.replace(/^(\(0\)|0)/,'');
 
-                    // Reset submit state
-                    this.isSubmit = false;
+                    // Set the new international number data field
+                    const nationalNumber = PhoneNumberProvider.getInternationalPhoneNumber(this.formPhone, this.formCountryCode);
 
-                    // Redirect to check-in list
-                    let options = { clearHistory: true, ...this.backNavOptions };
-                    this.$goto('checkInHome', options);
+                    // Add this person for this user on the server
+                    const data = {
+                        'name': this.formName,
+                        'email': this.formEmail,
+                        'dialCode': this.formCountryDialCode,
+                        'nationalNumber': nationalNumber.e164Number ? nationalNumber.e164Number : this.formCountryDialCode + phoneNumber,
+                        'phone': phoneNumber,
+                        'countryCode': this.formCountryCode,
+                        'frequency': this.formFrequency
+                    };
+
+                    await PersonAPIService.add(this.userId, data)
+                    .then( (response) => {
+                        if (!response || !response.message) {
+                            throw new NoResponseAPIError();
+                        }
+
+                        // Make sure our expected fields are in the response
+                        if (!response.person) {
+                            throw 'Couldn\'t save your data - please try again later';
+                        }
+
+                        // Fields will be available in our Vuex getters
+
+                        // Reset submit state
+                        this.isSubmit = false;
+
+                        // Redirect to check-in list
+                        let options = { clearHistory: true, ...this.backNavOptions };
+                        this.$goto('checkInHome', options);
+                    })
                 } catch (e) {
+                    console.error(e);
                     // Show an error message
                     this.isSubmitError = true;
+
+                    // Extract any error message/data from the error
+                    const errorData = getResponseErrorMessage(e);
+                    this.errorMessage = errorData.message;
+
                     this.errorTimer = setTimeout(() => {
                         this.isSubmitError = false;
                         this.isSubmit = false;
+                        this.existsError = false;
                     }, 3000);
                 }
             } else {
                 this.errorTimer = setTimeout(() => {
-                this.isSubmit = false;
-                this.isSubmitError = false;
-            }, 3000);
-          }
+                    this.isSubmit = false;
+                    this.isSubmitError = false;
+                    this.existsError = false;
+                }, 3000);
+            }
         },
 
         onSearchQueryChange(event) {

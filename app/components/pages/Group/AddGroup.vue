@@ -137,7 +137,7 @@ export default {
                 // Valid            
                 
                 // Save the group details using the API
-                await GroupAPIService.addGroup(this.userId, this.formName, this.formFrequency)
+                await GroupAPIService.add(this.userId, this.formName, this.formFrequency)
                 .then( (response) => {
                     if (!response || !response.message) {
                         throw new NoResponseAPIError();

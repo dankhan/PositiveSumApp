@@ -13,10 +13,10 @@
             <ListView for="item in combinedList" key="listview" separatorColor="transparent" :height="listViewHeight" v-if="!isLoadingError" ref="listview" @itemLoading="onListViewItemLoading">
                 <v-template>
                     <GridLayout class="listButtonContainer" columns="*,auto,auto" @tap="onTapItem(item)">
-                        <label col="0" class="listbutton" :text="item.userName" marginLeft="5"></label>
+                        <label col="0" class="listbutton" :text="item.from.name" marginLeft="5"></label>
                         
                         <!-- Notify Icon -->
-                        <label col="1" class="notifytext" :text="item.notifyCount"></label>
+                        <label col="1" class="notifytext" :text="item.notify"></label>
 
                         <!-- Group/Chevron Icon -->
                         <Image col="2" class="chevron" src="res://icons_button_chevron_right" width="26" height="26" stretch="aspectFit" marginRight="10"></Image>
@@ -72,13 +72,48 @@ export default {
             return { transition: { name: "slideLeft", duration: 300, curve: "ease" }}
         },
 
-        showMemo() {
-            return this.yourCheckIns.length && !this.isLoadingError;
-        },
-
         combinedList() {
-            // Sort the list by the due date, showing most due at the bottom of the list for easy access
-            return [...this.yourCheckIns].sort((a, b) => parseInt(b.due) - parseInt(a.due));
+            const yourCheckIns = JSON.parse(JSON.stringify(this.yourCheckIns(this.userId)));           // use json for deep copy so we don't change underlying store data
+            if (yourCheckIns.length) {
+                // We lookup each person's name from the contact store
+                let checkIns = yourCheckIns.map( x => {
+                    // Add the to/from name for our user id
+                    /*if (x.to && x.to.userId && Number(x.to.userId) === Number(this.userId)) {
+                        x.to.name = this.userName;
+                    }
+                    if (x.from && x.from.userId && Number(x.from.userId) === Number(this.userId)) {
+                        x.from.name = this.userName;
+                    }*/
+                    
+                    // Lookup the person details from personId in the to/from field from the contact store
+                    /*if (x.to && x.to.personId && Number(x.to.personId) > 0) {
+                        const person = this.person(Number(x.to.personId));
+                        x.to = {...x.to, ...person};
+                    }
+                    if (x.from && x.from.personId && Number(x.from.personId) > 0) {
+                        const person = this.person(Number(x.from.personId));
+                        x.from = {...x.from, ...person};
+                    }*/
+
+                    if (x.from && x.from.personId && Number(x.from.personId) > 0) {
+                        const person = this.person(Number(x.from.personId));
+                        x.from = {...x.from, ...person};
+                    }
+
+                    return x;
+                });
+
+                console.info(checkIns);
+            
+                // Sort the list by the due date, showing most due at the bottom of the list for easy access
+                if (checkIns.length > 1) {
+                    checkIns.sort((a, b) => parseInt(b.time) - parseInt(a.time));
+                }
+
+                return checkIns;
+            } else {
+                return [];
+            }
         },
 
         listViewHeight() {
@@ -105,15 +140,15 @@ export default {
 
         // Map our Vuex getters
         ...mapGetters({
-            userId: 'CheckIn/userId',
-            yourCheckIns: 'CheckIn/yourCheckIns',
-            userList: 'CheckIn/userList',
-            groupList: 'CheckIn/groupList',
+            userId: 'User/userId',
+            userName: 'User/name',
+            yourCheckIns: 'CheckIns/yourCheckIns',
+            person: 'Contacts/person',
         }),
     },
 
     beforeMount() {
-        this.fetchYourCheckInList();
+        // this.fetchYourCheckInList();
     },
 
     mounted() {
@@ -159,7 +194,9 @@ export default {
         },
 
         scrollToBottom() {
-            return this.scrollListView(this.combinedList.length ? this.combinedList.length-1 : 0);
+            if (this.combinedList.length) {
+                return this.scrollListView(this.combinedList.length ? this.combinedList.length-1 : 0);
+            }
         },
 
         fetchYourCheckInList() {
@@ -168,7 +205,7 @@ export default {
             this.apiError = false;
 
             // Fetch the checkin list from the server
-            CheckInAPIService.yourCheckIns(this.userId)
+            /*CheckInAPIService.yourCheckIns(this.userId)
             .then( (response) => {
                 if (!response || !response.message) {
                     throw new NoResponseAPIError();
@@ -199,7 +236,7 @@ export default {
                 const errorData = getResponseErrorMessage(error);
                 this.errorMessage = errorData.message;
                 this.connectError = errorData.connectError;
-            });
+            });*/
         },
 
         onListViewItemLoading(args) {

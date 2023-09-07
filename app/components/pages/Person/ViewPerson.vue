@@ -10,13 +10,13 @@
                 <GridLayout columns="*" verticalAlignment="bottom" marginLeft="20" marginRight="20" marginBottom="10">
                     <StackLayout>
                         <!-- Person Name Heading -->
-                        <Label class="heading" text="Dan Khan" marginBottom="0"></Label>
+                        <Label class="heading" :text="originalFormName" marginBottom="0"></Label>
 
                         <!-- Buttons -->
                         <ContactButtons :name='originalFormName' :email="originalFormEmail" :phone="originalFormPhone" :countryDialCode='originalFormCountryDialCode' :nationalNumber="formPhoneNationalNumber" :hasShare="true"></ContactButtons>
                         
                         <!-- Last Check-in Date -->
-                        <Label class="lastcheckin" text="Last check-in 5 days ago" marginTop="0" marginBottom="40"></Label>
+                        <Label class="lastcheckin" :text="lastCheckInLabel" marginTop="0" marginBottom="40"></Label>
                     
                         <!-- Form -->
                     
@@ -69,6 +69,9 @@
                             </GridLayout>
                         </GridLayout>
                         
+                        <!-- Person exists error message -->
+                        <label v-if="existsError !== false" class="error" textWrap="true" marginTop="10" marginBottom="0" horizontalAlignment="center" :text="`This email or phone number is already assigned to '${existsError}'`"></label>
+                        
                         <!-- Frequency Slider -->
                         <GridLayout columns="*, auto" rows="auto, auto">
                             <Slider row="0" class="slider" :isEnabled="isEdit" v-model="formFrequency" minValue="1" :maxValue="frequencyOptions.length" @valueChange="onSliderValueChanged" :backgroundColor="frequencyBackgroundColor" color="#ffffff" />
@@ -78,7 +81,7 @@
                             <Image v-if="!isFrequencySaving && isEdit" :src="frequencyEditIcon" col="1" class="form-icon" verticalAlignment="middle" height="24" width="24" @tap="onTapSaveForm('frequency')" />
                             <ActivityIndicator col="1" :busy="isFrequencySaving" v-if="isFrequencySaving" verticalAlignment="middle" marginRight="5" marginLeft="9" />
                         </GridLayout>
-                        
+
                         <!-- Groups -->
                         <Label class="heading2" text="Groups" marginTop="20" marginBottom="10"></Label>
 
@@ -122,6 +125,10 @@ import PersonAPIService from '@/services/PersonAPIService';
 // Import our custom errors
 import NoResponseAPIError from '@/errors/noresponseapierror';
 
+// Common includes used in this page
+import { mapGetters } from 'vuex';
+import { daysAgoLabel } from '@/common/utilities';
+
 export default {
     components: {
         TopNav,
@@ -130,23 +137,33 @@ export default {
 
     // The person item is passed as item
     props: {
-        item: { type: Object, default: {} },
+        item: { type: Object, default() { return {} } },
+    },
+    
+    // Update local mutators from changing props
+    watch: {
+        item() {
+            this.loadUser();
+        },
     },
     
     data() {
         return {
+            // This Person
+            personId: 0,
+
             // Form fields
-            formName: 'John Appleseed',
-            formEmail: 'John-Appleseed@mac.com',
-            formPhone: '8885555512',
-            formCountryCode: 'us',      // ISO 2 char country code (e.g. US)
-            formCountryDialCode: '+1',  // country dial code (e.g. 1)
-            formPhoneNationalNumber: '+18885555512',
+            formName: '',
+            formEmail: '',
+            formPhone: '',
+            formCountryCode: '',      // ISO 2 char country code (e.g. us)
+            formCountryDialCode: '',  // country dial code (e.g. +1)
+            formPhoneNationalNumber: '+18885555512',        // fully qualified international number
             formFrequency: 2,
             frequencyOptions: [
                 'Daily', 'Weekly', 'Fortnightly', 'Monthly', 'Every 2 months', 'Every 3 months', 'Every 6 months'
             ],
-            groupsList: [
+            /*groupsList: [
                 {
                     'groupId': 1,
                     "groupName": 'Group 1'
@@ -163,7 +180,7 @@ export default {
                     'groupId': 4,
                     "groupName": 'Group 4'
                 },
-            ],
+            ],*/
 
             // Save unedited values so we know if they changed
             originalFormName: '',
@@ -179,13 +196,14 @@ export default {
             
             // Phone number validation related
             flagImage: null,            // base64 encoded flag image currently displayed in form
-            defaultCountryCode: 'us',
-            defaultCountryDialCode: '+1',
+            defaultCountryCode: 'nz',
+            defaultCountryDialCode: '+64',
 
             // Submit related
             saveTimer: null,
             isSaveSuccess: false,
             isSaveError: false,
+            existsError: false,
             isNameSaving: false,
             isEmailSaving: false,
             isPhoneSaving: false,
@@ -305,20 +323,34 @@ export default {
                 return this.defaultColor;
             }
         },
+
+        lastCheckInLabel() {
+            const lastCheckIn = daysAgoLabel(this.lastCheckIn(this.item.personId));
+            return lastCheckIn ? 'Last check-in ' + lastCheckIn : 'Not checked in yet';
+        },
+
+        user() {
+            return this.personId ? this.person(this.personId) : null;
+        },
+        
+        groupsList() {
+            // return the list of groups for this personId
+            return this.personId ? this.personGroups(this.personId) : null;
+        },
+
+        // Map our Vuex getters
+        ...mapGetters({
+            userId: 'User/userId',
+            person: 'Contacts/person',
+            personGroups: 'Groups/personGroups',
+            lastCheckIn: 'Contacts/lastCheckIn',
+            personExists: 'Contacts/exists',
+        }),
     },
 
-    mounted() {
-        // Stash original form values so we can know if they changed
-        this.originalFormName = this.formName;
-        this.originalFormEmail = this.formEmail;
-        this.originalFormPhone = this.formPhone,
-        this.originalFormCountryCode = this.formCountryCode;
-        this.originalFormCountryDialCode = this.formCountryDialCode;
-        this.originalFormPhoneNationalNumber = this.formPhoneNationalNumber;
-        this.originalFormFrequency = this.formFrequency;
-
-        // Set the flag image
-        this.setFlagImage();
+    beforeMount() {
+        // Get the user details from the store
+        this.loadUser();
     },
 
     beforeUnmount() {
@@ -331,6 +363,28 @@ export default {
         onPageLoaded(event) {
             // Set the Status bar style (light or dark based on the *page* content)
             event.object.page.statusBarStyle = 'dark';
+        },
+
+        loadUser(user) {
+            // We extract the personId from the passed in item, and look this up in our vuex store
+            if (!this.item.personId) {
+                // Bounce back to check in list
+                this.$navigateBack(this.backNavOptions);
+            } else {
+                this.personId = this.item.personId;
+            }
+
+            // Stash original form values so we can know if they changed
+            this.originalFormName = this.user.name ? this.user.name : '';
+            this.originalFormEmail = this.user.email ? this.user.email : '';
+            this.originalFormPhone = this.user.phone ? this.user.phone : '',
+            this.originalFormCountryCode = this.user.countryCode ? this.user.countryCode : '';
+            this.originalFormCountryDialCode = this.user.dialCode ? this.user.dialCode : '';
+            this.originalFormPhoneNationalNumber = this.user.nationalNumber ? this.user.nationalNumber : '';
+            this.originalFormFrequency = this.user.frequency ? this.user.frequency : '';
+
+            // Reset form values to these defaults
+            this.resetForm();
         },
 
         onEdit() {
@@ -389,20 +443,32 @@ export default {
                 });
         },
         
+        checkPersonExists() {
+            // Trim off any leading zero on phone number
+            const phoneNumber = (this.formPhone === undefined) ? '' : this.formPhone.replace(/^(\(0\)|0)/,'');
+            
+            // Check if the person already exists (returns person's name if it does so we can use in error message)
+            return this.personExists(this.formEmail, this.formCountryDialCode, phoneNumber, this.item.personId);
+        },
+        
         onTapSaveForm(field) {
             // Reset submit state
             this.isSaveSuccess = false;
             this.isSaveError = false;
-
+            this.existsError = false;
             if (this.saveTimer) {
                 clearTimeout(this.saveTimer);
             }
+
+            // Check if name or email already exists (do here instead of computed to avoid expensive calc on form field change)
+            this.existsError = this.checkPersonExists();
 
             // Validate fields and only let one field save at once
             if (field === 'name' && (this.nameError || this.isEmailSaving || this.isPhoneSaving || this.isFrequencySaving || this.isGroupSaving || this.formName === this.originalFormName)) return;
             if (field === 'email' && (this.emailError || this.isNameSaving || this.isPhoneSaving || this.isFrequencySaving || this.isGroupSaving || this.formEmail === this.originalFormEmail)) return;
             if (field === 'phone' && (this.phoneNumberError || this.isNameSaving || this.isEmailSaving || this.isFrequencySaving || this.isGroupSaving || (this.formPhone === this.originalFormPhone && this.formCountryDialCode === this.originalFormCountryDialCode))) return;
             if (field === 'frequency' && (this.frequencyError || this.isNameSaving || this.isEmailSaving || this.isPhoneSaving || this.isGroupSaving || this.formFrequency === this.originalFormFrequency)) return;
+            if (this.existsError !== false) return;
 
             // Set the save state for the field
             if (field === 'name') { this.isNameEdit = true; this.isNameSaving = true; }
@@ -411,14 +477,21 @@ export default {
             if (field === 'frequency') { this.isFrequencyEdit = true; this.isFrequencySaving = true; }
 
             // Set the new international number data field
-            this.formPhoneNationalNumber = PhoneNumberProvider.getInternationalPhoneNumber(this.formPhone, this.formCountryCode);
+            const phoneNumber = (this.formPhone === undefined) ? '' : this.formPhone.replace(/^(\(0\)|0)/,'');          // // Trim off any leading zero on phone number
+            const nationalNumber = PhoneNumberProvider.getInternationalPhoneNumber(this.formPhone, this.formCountryCode);
+            this.formPhoneNationalNumber = nationalNumber.e164Number ? nationalNumber.e164Number : this.formCountryDialCode + phoneNumber;
 
             // Construct the update data
             let data = null;
-            data = this.formName ? { name: this.formName } : null;
-            data = this.formEmail ? { email: this.formEmail } : null;
-            data = this.formFrequency ? { frequency: this.formFrequency } : null;
-            data = this.formPhone ? { dialCode: this.formCountryDialCode, phone: this.formPhone, countryCode: this.formCountryCode, nationalNumber: this.formPhoneNationalNumber } : null;
+            if (field === 'name') { data = { name: this.formName } };
+            if (field === 'email') { data = { email: this.formEmail } };
+            if (field === 'frequency') { data = { frequency: this.formFrequency } };
+            if (field === 'phone') { data = {
+                dialCode: this.formCountryDialCode,
+                phone: this.formPhone,
+                countryCode: this.formCountryCode,
+                nationalNumber: this.formPhoneNationalNumber
+            }};
 
             // Save the data through the API
             PersonAPIService.update(this.userId, data)
@@ -434,7 +507,7 @@ export default {
 
                 // Updated contact will be available in our Vuex store
 
-                // For now we update fields manually
+                // Update the new original form values
                 this.originalFormName = response.person.name;
                 this.originalFormEmail = response.person.email;
                 this.originalFormPhone = response.person.phone;
@@ -448,17 +521,17 @@ export default {
 
                 // Reset error flags
                 this.isSaveSuccess = true;
-                
+            })
+            .catch( () => {
+                // Show error message
+                this.isSaveError = true;
+            }).finally(() => {
                 // Reset any save states
                 this.isNameSaving = false;
                 this.isEmailSaving = false;
                 this.isPhoneSaving = false;
                 this.isFrequencySaving = false;
-            })
-            .catch( (error) => {
-                // Show error message
-                this.isSaveError = true;
-            }).finally(() => {
+
                 // Flash background color based on save result
                 this.saveTimer = setTimeout(() => {
                     if (field === 'name') { this.isNameEdit = false; }
@@ -471,6 +544,13 @@ export default {
                     // Clear submit state
                     this.isSaveSuccess = false;
                     this.isSaveError = false;
+                    this.existsError = false;
+
+                    // Reset any save states
+                    this.isNameSaving = false;
+                    this.isEmailSaving = false;
+                    this.isPhoneSaving = false;
+                    this.isFrequencySaving = false;
 
                 }, this.saveInterval);
             });
@@ -478,7 +558,8 @@ export default {
 
         async onTapRemoveGroup(groupId) {
             const group = this.groupsList.find((g) => g.groupId === groupId);
-            return Dialogs.confirm('Really remove this contact from ' + group.groupName + '?')
+            
+            return Dialogs.confirm('Really remove ' + this.originalFormName + ' from ' + group.groupName + '?')
                 .then((result) => {
                     if (result) {
                         this.isSaveSuccess = false;
@@ -490,14 +571,13 @@ export default {
                         this.groupIdSaving = groupId;
 
                         // Save the data through the API
-                        return PersonAPIService.removeGroup(this.userId, groupId )
+                        return PersonAPIService.removeGroup(this.userId, groupId, this.personId)
                         .then( (response) => {
                             if (!response || !response.message) {
                                 throw new NoResponseAPIError();
                             }
 
-                            // Updated contact will be available in our Vuex store - for now we update fields manually
-                            this.groupsList = this.groupsList.filter(item => item.groupId !== groupId);
+                            // Updated contact will be available in our Vuex store
 
                             // Reset error flags
                             this.isSaveSuccess = true;
@@ -526,14 +606,13 @@ export default {
         onTapAddToGroup() {
             // Show the choose group modal and update the groupList on close
             this.$showModal(GroupSelect, { fullscreen: true, props: { userToAdd: this.item } })
-            .then((result) => {
-                // Update the group list
-                this.groupsList = result;
+            .then(() => {
+                // Groups list will be updated in Vuex so nothing to update here
             });
         },
 
         onDelete() {
-            console.log('deleting user');
+            console.error('TODO: deleting user');
         },
     },
 }

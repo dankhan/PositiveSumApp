@@ -13,16 +13,59 @@
 
 // Common includes used in this file
 import * as Https from '@/common/https';
-//import store from '@/store/index';
+import store from '@/store/index';
 import { MD5 } from 'crypto-es/lib/md5.js';
 
 /*
- * function addGroup ()
+ * function get ()
+ *
+ * API call to get a group for a user
+ *
+ */
+const get = async (userId, groupId, updateStore=true ) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'group/get';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + groupId;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            groupId,
+            signature,
+        }
+    }).then(async (response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Add/update the person to the store (only do if this isn't triggered from the store)
+        const data = JSON.parse(response.content);
+        const group = data.group;
+
+        // Show debug output
+        if (process.env.DEBUG_API) {
+            console.info('Returned content from API', data);
+        };
+
+        if (updateStore) {
+            await store.dispatch('Group/SET_GROUP', group);
+        }
+
+        // Return the data returned from the API so UI can access it
+        return data;
+    });
+}
+
+/*
+ * function add()
  *
  * API call to add a new group for a user
  *
  */
-const addGroup = async (userId, groupName, frequency) => {
+const add = async (userId, groupName, frequency) => {
     // The end point to call and to use for hashing our secret key
     const endPoint = 'group/add';
 
@@ -38,14 +81,20 @@ const addGroup = async (userId, groupName, frequency) => {
             frequency,
             signature
         }
-    }).then((response) => {
+    }).then(async (response) => {
         // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
         Https.checkResponseErrorCodes(response);
         
         // Update the newly fetched check-in data store
         const data = JSON.parse(response.content);
         const group = data.group;
-        //store.dispatch('Group/UPDATE', { group });          // TODO: update this group in the group store
+
+        // Show debug output
+        if (process.env.DEBUG_API) {
+            console.info('Returned content from API', data);
+        };
+        
+        await store.dispatch('Groups/SET_GROUP', { group });
 
         // Return the data returned from the API so UI can access it
         return data;
@@ -54,5 +103,5 @@ const addGroup = async (userId, groupName, frequency) => {
 
 // Export each API endpoint
 export default {
-    addGroup
+    add, get
 };

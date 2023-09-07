@@ -11,14 +11,14 @@
 
             <!-- Render the item list -->
             <ListView for="item in combinedList" separatorColor="transparent" :height="listViewHeight" ref="listview" v-if="!isLoadingError" @itemLoading="onListViewItemLoading">
-                <!-- User -->
-                <v-template if="item.type == 'user'">
-                    <ProgressBarButton :text="item.userName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" :notifyCount=1 successMessage="Check-in sent!" errorMessage="Could not send check-in" notifyRoute="checkInReplyUser" tapRoute="viewPerson" />
+                <!-- Person -->
+                <v-template if="item.type == 'person'">
+                    <ProgressBarButton :text="item.name" :item="item" :key="`item-person-${item.personId}`" :onLongPress="onLongPressPerson" :notifyCount=item.notify successMessage="Check-in sent!" errorMessage="Could not send check-in" notifyRoute="checkInReplyUser" tapRoute="viewPerson" />
                 </v-template>
 
                 <!-- Group -->
                 <v-template if="item.type == 'group'">
-                    <ProgressBarButton :text="'#'+item.groupName" :isError="isItemError" :item="item" :onLongPress="onLongPressItem" :notifyCount=3 successMessage="Group check-in sent!" errorMessage="Could not send group check-in" notifyRoute="checkInGroup" :showArrow="true" arrowRoute="checkInGroup" tapRoute="checkInGroup" />
+                    <ProgressBarButton :text="'#'+item.groupName" :item="item" :key="`item-group-${item.groupId}`" :onLongPress="onLongPressGroup" :notifyCount=item.notify successMessage="Group check-in sent!" errorMessage="Could not send group check-in" notifyRoute="checkInGroup" :showArrow="true" arrowRoute="checkInGroup" tapRoute="checkInGroup" />
                 </v-template>
 
                 <!-- Help Button -->
@@ -30,7 +30,7 @@
 
                 <!-- Your Check-Ins Button -->
                 <v-template if="item.type == 'yourcheckins'">
-                    <ProgressBarButton text="Your check-ins" :notifyCount=5 notifyRoute="yourCheckIns" :hasLongPress="false" :showArrow="true" arrowRoute="yourCheckIns" tapRoute="yourCheckIns" />
+                    <ProgressBarButton text="Your check-ins" key="item-yourcheckins" :notifyCount=yourCheckInsNotifyCount(userId) notifyRoute="yourCheckIns" :hasLongPress="false" :showArrow="true" arrowRoute="yourCheckIns" tapRoute="yourCheckIns" />
                 </v-template>
 
                 <!-- Add Button -->
@@ -78,8 +78,6 @@ export default {
             apiError: false,
             connectError: false,
             errorMessage: '',
-
-            isItemError: false,
         }
     },
 
@@ -93,44 +91,61 @@ export default {
         },
 
         showMemo() {
-            return (this.userList.length || this.groupList.length) && !this.isLoadingError;
+            return (this.personList.length || this.groupList.length) && !this.isLoadingError;
         },
 
         combinedList() {
             // Generate a combined list of items for rendering including buttons and groups
             let list = [];
-            if (!this.userList.length && !this.groupList.length) {
-                list.push({ type: 'help' });
-            }
+            const persons = JSON.parse(JSON.stringify(Object.values(this.personList())));           // use json for deep copy so we don't change underlying store data            
+            const groups = JSON.parse(JSON.stringify(Object.values(this.groupList())));
 
-            // Now we add a "user" type to all users in the user list
-            let users = this.userList.map( x => {
-                x.type = 'user';
-                return x
-            });
+            // Now we add a "user" type to all users in the user list, and lookup the user's name
+            if (persons.length) {
+                let usersAdd = persons.map( x => {
+                    // Tag as user type for rendering
+                    x.type = 'person';
 
-            // Merge the user list
-            if (users) {
-                list = [...list, ...users];
+                    // Lookup the name in the contact store
+                    x.name = this.personName(x.personId);
+                    return x;
+                });
+            
+                // Merge the user list
+                if (usersAdd) {
+                    list = [...list, ...usersAdd];
+                }
             }
 
             // Now we add a "group" type to all groups in the group list
-            let groups = this.groupList.map( x => {
-                x.type = 'group';
-                return x
-            });
+            if (groups.length) {
+                let groupsAdd = groups.map( x => {
+                    // Tag as group type for rendering
+                    x.type = 'group';
+                    return x;
+                });
 
-            // Merge the group list
-            if (groups) {
-                list = [...list, ...groups];
+                // Merge the group list
+                if (groupsAdd) {
+                    list = [...list, ...groupsAdd];
+                }
             }
 
             // Sort the list by the due date, showing most due at the bottom of the list for easy access
-            list.sort((a, b) => parseInt(b.due) - parseInt(a.due));
+            list.sort((a, b) => {
+                const dueA = a && a.due && a.due.checkIn && parseInt(a.due.checkIn) > 0 ? parseInt(a.due.checkIn) : -1;             // No due date, sort back of list
+                const dueB = b && b.due && b.due.checkIn && parseInt(b.due.checkIn) > 0 ? parseInt(b.due.checkIn) : -1;
+                return dueB - dueA;
+            });
 
             // Add the YourCheckIns at the bottom of the list
-            if (!this.yourCheckIns.length && !this.yourCheckIns.length) {
+            if (this.hasYourCheckIns) {
                 list.push({ type: 'yourcheckins' });
+            }
+
+            // Add a help button before the bottom - if the user hasn't added any contacts yet
+            if (!persons.length && !groups.length) {
+                list.push({ type: 'help' });
             }
 
             // Always add the add button right at the bottom
@@ -163,15 +178,18 @@ export default {
 
         // Map our Vuex getters
         ...mapGetters({
-            userId: 'CheckIn/userId',
-            yourCheckIns: 'CheckIn/yourCheckIns',
-            userList: 'CheckIn/userList',
-            groupList: 'CheckIn/groupList',
+            userId: 'User/userId',
+            personList: 'Contacts/persons',
+            groupList: 'Groups/groups',
+            checkInList: 'CheckIns/all',
+            personName: 'Contacts/personName',
+            hasYourCheckIns: 'CheckIns/hasYourCheckIns',
+            yourCheckInsNotifyCount: 'CheckIns/yourCheckInsNotifyCount',
         }),
     },
 
     beforeMount() {
-        this.fetchList();
+        // this.fetchList();
     },
   
     mounted() {
@@ -228,7 +246,7 @@ export default {
                 }
 
                 // Make sure our expected fields are in the response
-                if (!response.checkin) {
+                if (!response.checkIns) {
                     throw 'There was a problem fetching your data, please try again later';
                 }
 
@@ -263,14 +281,60 @@ export default {
             }
         },
 
-        onLongPressItem(data) {
+        onLongPressPerson(data) {
             return new Promise((resolve, reject) => {
                 try {
-                    //throw ('Error');
-                    console.log("success", data);
-                    resolve({ data });
+                    // For now we create a static check-in text
+                    const text = '👋';
+                    CheckInAPIService.person(this.userId, data.personId, text)
+                    .then( (response) => {
+                        if (!response || !response.message) {
+                            throw new NoResponseAPIError();
+                        }
+
+                        // Make sure our expected fields are in the response
+                        if (!response.checkIn) {
+                            throw 'There was a problem sending your check-in, please try again later';
+                        }
+
+                        resolve(data);
+                    })
+                    .catch( (error) => {
+                        console.error(error);
+                        reject(data);
+                    });
                 } catch (e) {
-                    throw(e);
+                    console.error(e);
+                    reject(data);
+                }
+            });
+        },
+
+        onLongPressGroup(data) {
+            return new Promise((resolve, reject) => {
+                try {
+                    // For now we create a static check-in text
+                    const text = '👋';
+                    CheckInAPIService.group(this.userId, data.groupId, text)
+                    .then( (response) => {
+                        if (!response || !response.message) {
+                            throw new NoResponseAPIError();
+                        }
+
+                        // Make sure our expected fields are in the response
+                        if (!response.checkIns) {
+                            throw 'There was a problem sending your group check-in, please try again later';
+                        }
+
+                        resolve(data);
+                    })
+                    .catch( (error) => {
+                        console.error(error);
+                        reject(data);
+                    });
+                } catch (e) {
+                    console.error(e);
+                    reject(data);
                 }
             });
         },

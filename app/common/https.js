@@ -56,6 +56,10 @@ function createPostRequest(url, options) {
 }
 
 function getRequest(url, options) {
+  if (process.env.DEBUG_API) {
+    console.info('Making GET API request to ' + url, options);
+  }
+  
   return Https.request({
       url: baseUrl(url),
       method: 'GET',
@@ -65,12 +69,18 @@ function getRequest(url, options) {
 }
 
 function postRequest(url, options) {
-  return Https.request({
+  if (process.env.DEBUG_API) {
+    console.info('Making POST API request to ' + url, options);
+  }
+  
+  const result = Https.request({
       url: baseUrl(url),
       method: 'POST',
       timeout: 10,
       ...options
   });
+
+  return result;
 }
 
 function enableSSLPinning() {

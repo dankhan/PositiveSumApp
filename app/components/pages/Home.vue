@@ -77,6 +77,16 @@ export default {
         }
     },
 
+    async beforeMount() {
+        /*await this.$store.dispatch('Contacts/GET_CONTACT', { userId: 1, personId: 42 } );
+        await this.$store.dispatch('Contacts/GET_CONTACT', { userId: 1, personId: 43 } );
+        await this.$store.dispatch('Contacts/GET_CONTACT', { userId: 1, personId: 44 } );*/
+
+        // Simulate a user login
+        await this.$store.dispatch('User/SET_USER_ID', { userId: 1 } );
+        await this.$store.dispatch('User/SET_USER_NAME', { name: "Dan" } );
+    },
+
     computed: {
         greeting() {
             // We create a default greeting based on the time of day

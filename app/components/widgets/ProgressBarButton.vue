@@ -44,7 +44,7 @@ export default {
         errorMessage: { type: String, default: "Problem updating this item" },
 
         // Notify options
-        notifyCount: { type: Number, default: null },
+        notifyCount: { type: [String, Number], default: null },
         notifyRoute: { type: String, default: "" },
         
         // Arrow options
@@ -102,7 +102,7 @@ export default {
         },
 
         showNotify() {
-            return this.notifyCount && this.notifyCount > 0;
+            return this.notifyCount && parseInt(this.notifyCount) > 0;
         },
 
         isTapOrLongPress() {
@@ -186,7 +186,7 @@ export default {
                                         // If we have a callback, we fire it
                                         if (this.onLongPress && typeof this.onLongPress === 'function') {
                                             this.onLongPress(this.item)
-                                            .then((data) => {
+                                            .then(() => {
                                                 // Show success style
                                                 this.selfIsSuccess = true;
                                                 this.successTimer = setTimeout(() => {
@@ -194,11 +194,15 @@ export default {
                                                 }, this.successInterval);
                                             })
                                             .catch((error) => {
-                                                // Show error style
-                                                this.selfIsError = true;
-                                                this.errorTimer = setTimeout(() => {
-                                                    this.reset();
-                                                }, this.errorInterval);
+                                                // Check this was our itemId in the returned data
+                                                if ((error.type && error.type === 'group' && error.groupId && this.item.groupId === error.groupId) || 
+                                                    (error.type && error.type === 'person' && error.personId && this.item.personId === error.personId)) {
+                                                    // Show error style
+                                                    this.selfIsError = true;
+                                                    this.errorTimer = setTimeout(() => {
+                                                        this.reset();
+                                                    }, this.errorInterval);
+                                                }
                                             });
                                         }
                                     }

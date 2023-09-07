@@ -67,7 +67,7 @@ export default {
     
     // The check-in details passed as item
     props: {
-        item: { type: Object, default: {} },
+        item: { type: Object, default() { return {} } },
     },
     
     data() {
@@ -242,10 +242,10 @@ export default {
 
         // Map our Vuex getters
         ...mapGetters({
-            userId: 'CheckIn/userId',
-            yourCheckIns: 'CheckIn/yourCheckIns',
-            userList: 'CheckIn/userList',
-            groupList: 'CheckIn/groupList',
+            userId: 'User/userId',
+            yourCheckIns: 'CheckIns/yourCheckIns',
+            userList: 'CheckIns/users',
+            groupList: 'Groups/get',
         }),
     },
 

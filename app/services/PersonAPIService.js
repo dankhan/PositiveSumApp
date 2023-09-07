@@ -13,7 +13,7 @@
 
 // Common includes used in this file
 import * as Https from '@/common/https';
-//import store from '@/store/index';
+import store from '@/store/index';
 import { MD5 } from 'crypto-es/lib/md5.js';
 
 /*
@@ -45,7 +45,7 @@ const get = async (userId, personId, updateStore=true ) => {
         const data = JSON.parse(response.content);
         const person = data.person;
         if (updateStore) {
-            await store.dispatch('Contact/SET_CONTACT', person);
+            await store.dispatch('Contacts/SET_CONTACT', person);
         }
 
         // Return the data returned from the API so UI can access it
@@ -54,32 +54,28 @@ const get = async (userId, personId, updateStore=true ) => {
 }
 
 /*
- * function update ()
+ * function add ()
  *
- * API call to get update a person (contact) for a user
+ * API call to add a person (contact) for a user
  *
  */
-const update = async (userId, { name, email, dialCode, phone, countryCode, nationalNumber, frequency }) => {
+const add = async (userId, { name, email, dialCode, phone, countryCode, nationalNumber, frequency }) => {
     // The end point to call and to use for hashing our secret key
-    const endPoint = 'person/update';
+    const endPoint = 'person/add';
 
     // Generate a signed API request using our shared secret key
-    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId +
-        name ? name : '' + 
-        email ? email : '' + 
-        dialCode ? dialCode : '' + 
-        phone ? phone : '' + 
-        countryCode ? countryCode : '' + 
-        nationalNumber ? nationalNumber : '' + 
-        frequency ? frequency : '';
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + name + email + dialCode + phone + countryCode + nationalNumber + frequency;
     const signature = MD5(signatureStr).toString();
 
-    // Build the update object based on what we're updating - we only update single field at a time
-    let data = null;
-    data = name ? { name } : null;
-    data = email ? { email } : null;
-    data = frequency ? { frequency } : null;
-    data = phone ? { dialCode, phone, countryCode, nationalNumber } : null;
+    let data = {
+        name,
+        email,
+        dialCode,
+        phone,
+        countryCode,
+        nationalNumber,
+        frequency
+    };
 
     // Post to the user endpoint
     return Https.postRequest(endPoint, {
@@ -88,14 +84,54 @@ const update = async (userId, { name, email, dialCode, phone, countryCode, natio
             signature,
             data
         }
-    }).then((response) => {
+    }).then(async (response) => {
+        // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
+        Https.checkResponseErrorCodes(response);
+        
+        // Update the newly fetched check-in data store
+        const data = JSON.parse(response.content);
+
+        // The API will return two things, the new person record, and the new checkin record, so they can add to the check in list
+        const person = data.person;
+        await store.dispatch('Contacts/SET_CONTACT', { person });
+
+        const checkIn = data.checkIn;
+        await store.dispatch('CheckIns/SET_PERSON_CHECKIN', { checkIn });
+
+        // Return the data returned from the API so UI can access it
+        return data;
+    })
+}
+
+/*
+ * function update ()
+ *
+ * API call to get update a person (contact) for a user
+ *
+ */
+const update = async (userId, data) => {
+    // The end point to call and to use for hashing our secret key
+    const endPoint = 'person/update';
+
+    // Generate a signed API request using our shared secret key
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + data;
+    const signature = MD5(signatureStr).toString();
+
+    // Post to the user endpoint
+    return Https.postRequest(endPoint, {
+        body: {
+            userId,
+            signature,
+            data
+        }
+    }).then(async (response) => {
         // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
         Https.checkResponseErrorCodes(response);
         
         // Update the newly fetched check-in data store
         const data = JSON.parse(response.content);
         const person = data.person;
-        //store.dispatch('Person/UPDATE', { person });          // TODO: update this user's details in the person store
+        await store.dispatch('Contacts/SET_CONTACT', { person });
 
         // Return the data returned from the API so UI can access it
         return data;
@@ -108,12 +144,12 @@ const update = async (userId, { name, email, dialCode, phone, countryCode, natio
  * API call to remove a person from a group for a user
  *
  */
-const removeGroup = async (userId, groupId) => {
+const removeGroup = async (userId, groupId, personId) => {
     // The end point to call and to use for hashing our secret key
     const endPoint = 'person/removeGroup';
 
     // Generate a signed API request using our shared secret key
-    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + groupId;
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + groupId + personId;
     const signature = MD5(signatureStr).toString();
 
     // Post to the user endpoint
@@ -121,36 +157,52 @@ const removeGroup = async (userId, groupId) => {
         body: {
             userId,
             groupId,
+            personId,
             signature
         }
-    }).then((response) => {
+    }).then(async (response) => {
         // Check the returned response codes to determine if we had a http/server error (will raise exceptions)
         Https.checkResponseErrorCodes(response);
         
         // Extract JSON from the response
         const data = JSON.parse(response.content);
+        const personId = data.personId;
+        const groups = data.groups;
+        const persons = data.persons;
 
-        // Update the newly fetched check-in data store
-        //store.dispatch('Person/REMOVE_GROUP', { groupId });          // TODO: remove this group from the user in the person store
+        // Show debug output
+        if (process.env.DEBUG_API) {
+            console.info('Returned content from API', data);
+        };
+
+        // Update the contacts store
+        // await store.dispatch('Contacts/SET_GROUPS', { personId, groups });
         
+        // Update the checkins group store
+        store.dispatch('CheckIns/SET_PERSON_GROUPS', { personId, groups });
+
+        // Update the groups store
+        store.dispatch('Groups/SET_PERSON_GROUPS', { personId, groups });
+        store.dispatch('Groups/SET_GROUP_PERSONS', { groupId, persons });
+
         // Return the data returned from the API so UI can access it
         return data;
     });
 }
 
-const addUserToGroup = async (userId, userToAddId, groupId) => {
+const addGroup = async (userId, personId, groupId) => {
     // The end point to call and to use for hashing our secret key
-    const endPoint = 'person/addUserToGroup';
+    const endPoint = 'person/addGroup';
 
     // Generate a signed API request using our shared secret key
-    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + userToAddId + groupId;
+    const signatureStr = endPoint + process.env.API_SIGNATURE_SHARED_SECRET + userId + personId + groupId;
     const signature = MD5(signatureStr).toString();
 
     // Post to the user endpoint
     return Https.postRequest(endPoint, {
         body: {
             userId,
-            userToAddId,
+            personId,
             groupId,
             signature
         }
@@ -160,10 +212,22 @@ const addUserToGroup = async (userId, userToAddId, groupId) => {
         
         // Extract JSON from the response
         const data = JSON.parse(response.content);
+        const personId = data.personId;
+        const groups = data.groups;
+        const persons = data.persons;
 
-        // Remove the user from the local user groups store
-        //store.dispatch('Person/REMOVE_GROUP', { groupId });          // TODO: remove this user from the group in the person store
-        
+        // Show debug output
+        if (process.env.DEBUG_API) {
+            console.info('Returned content from API', data);
+        };
+
+        // Update the contacts store
+        // store.dispatch('Contacts/SET_GROUPS', { personId, groups });
+
+        // Update the groups store
+        store.dispatch('Groups/SET_PERSON_GROUPS', { personId, groups });
+        store.dispatch('Groups/SET_GROUP_PERSONS', { groupId, persons });
+
         // Return the data returned from the API so UI can access it
         return data;
     });
@@ -171,7 +235,8 @@ const addUserToGroup = async (userId, userToAddId, groupId) => {
 // Export each API endpoint
 export default {
     get,
+    add,
     update,
     removeGroup,
-    addUserToGroup,
+    addGroup,
 };

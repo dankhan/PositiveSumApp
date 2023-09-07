@@ -56,12 +56,12 @@ export default {
 
     // The person item is passed as item
     props: {
-        userToAdd: { type: Object, default: {} },
+        userToAdd: { type: Object, default() { return {} } },
     },
     
     data() {
         return {
-            groupsList: [
+            /*groupsList: [
                 {
                     'groupId': 1,
                     "groupName": 'Group 1'
@@ -78,7 +78,7 @@ export default {
                     'groupId': 4,
                     "groupName": 'Group 4'
                 },
-            ],
+            ],*/
 
             // What data do we want to return when the modal is closed
             modalData: false,
@@ -119,7 +119,8 @@ export default {
         
         combinedList() {
             // Generate a combined list of items for rendering including buttons and groups
-            let list = this.groupsList.map( x => {
+            const groups = [...(Object.values(this.groupsList))];
+            let list = groups.map( x => {
                 x.type = 'group';
                 return x;
             });
@@ -153,10 +154,10 @@ export default {
 
         // Map our Vuex getters
         ...mapGetters({
-            userId: 'CheckIn/userId',
-            yourCheckIns: 'CheckIn/yourCheckIns',
-            userList: 'CheckIn/userList',
-            groupList: 'CheckIn/groupList',
+            userId: 'User/userId',
+            yourCheckIns: 'CheckIns/yourCheckIns',
+            userList: 'CheckIns/users',
+            groupsList: 'Groups/all',
         }),
     },
 
@@ -204,8 +205,8 @@ export default {
         },
 
         async onTapAddToGroup(group) {
-            const userName = this.userToAdd.userName ? this.userToAdd.userName : '';
-            const userToAddId = this.userToAdd.userId ? this.userToAdd.userId : 0;
+            const userName = this.userToAdd.name ? this.userToAdd.name : '';
+            const personId = this.userToAdd.personId ? this.userToAdd.personId : 0;
 
             return Dialogs.confirm('Add ' + userName + ' to ' + group.groupName + '?')
                 .then(async (result) => {
@@ -221,7 +222,7 @@ export default {
                         this.groupIdSaving = group.groupId;
 
                         // Save the data through the API
-                        return PersonAPIService.addUserToGroup(this.userId, userToAddId, group.groupId)
+                        return PersonAPIService.addGroup(this.userId, personId, group.groupId)
                         .then( (response) => {
                             if (!response || !response.message) {
                                 throw new NoResponseAPIError();
@@ -237,10 +238,9 @@ export default {
                                 this.groupIdSaving = 0;
                                 this.apiSuccess = false;
 
-                                // Updated should update the groups list in the Vuex store - for now we update group list manually
-                                this.groupsList = this.groupsList.filter(item => item.groupId !== group.groupId);
+                                // Updated should update the groups list in the Vuex store
 
-                                // If no more groups, we close the modal
+                                // If no more groups to add this user to, we close the modal
                                 if (!this.groupsList.length) {
                                     this.$modal.close(this.modalData);
                                 }

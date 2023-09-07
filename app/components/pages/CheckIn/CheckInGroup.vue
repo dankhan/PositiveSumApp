@@ -26,7 +26,7 @@ export default {
     
     // The group item is passed as item
     props: {
-        item: { type: Object, default: {} },
+        item: { type: Object, default() { return {} } },
     },
     
     data() {

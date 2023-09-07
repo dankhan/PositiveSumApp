@@ -15,8 +15,10 @@ import Vue from 'nativescript-vue';
 import Vuex from 'vuex';
 
 // Import our store sub-modules
-import CheckIn from '@/store/modules/CheckIn';
+import CheckIns from '~/store/modules/CheckIns';
 import Contacts from '@/store/modules/Contacts';
+import Groups from '~/store/modules/Groups';
+import User from '~/store/modules/User';
 import LoginFrame from '@/store/modules/LoginFrame';
 import SignUpFrame from '@/store/modules/SignUpFrame';
 
@@ -27,8 +29,10 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     strict: true,
     modules: {
-      CheckIn,
+      CheckIns,
       Contacts,
+      Groups,
+      User,
       LoginFrame,
       SignUpFrame,
     },
@@ -37,6 +41,8 @@ const store = new Vuex.Store({
         async init({ dispatch }) {
             // Run any module init functions
             await dispatch('Contacts/INIT');
+            await dispatch('Groups/INIT');
+            await dispatch('CheckIns/INIT');
         },
     },
 });
